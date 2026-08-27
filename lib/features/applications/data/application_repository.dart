@@ -4,6 +4,7 @@ abstract interface class ApplicationRepository {
   List<JobApplication> getAll();
   void add(JobApplication application);
   void update(JobApplication current, JobApplication updated);
+  void delete(JobApplication application);
 }
 
 class InMemoryApplicationRepository implements ApplicationRepository {
@@ -49,4 +50,7 @@ class InMemoryApplicationRepository implements ApplicationRepository {
     final index = _items.indexOf(current);
     if (index != -1) _items[index] = updated;
   }
+
+  @override
+  void delete(JobApplication application) => _items.remove(application);
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/application_repository.dart';
 import '../domain/job_application.dart';
 import 'application_details_page.dart';
+import 'application_details_result.dart';
 import 'application_form_sheet.dart';
 import 'applications_view_model.dart';
 
@@ -38,13 +39,21 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> openApplicationDetails(JobApplication application) async {
-    final updated = await Navigator.push<JobApplication>(
+    final result = await Navigator.push<ApplicationDetailsResult>(
       context,
-      MaterialPageRoute<JobApplication>(
+      MaterialPageRoute<ApplicationDetailsResult>(
         builder: (_) => ApplicationDetailsPage(application: application),
       ),
     );
-    if (updated != null) viewModel.update(application, updated);
+
+    switch (result) {
+      case ApplicationUpdated(application: final updated):
+        viewModel.update(application, updated);
+      case ApplicationDeleted():
+        viewModel.delete(application);
+      case null:
+        break;
+    }
   }
 
   @override

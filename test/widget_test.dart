@@ -59,4 +59,26 @@ void main() {
     expect(find.text('Senior Flutter Developer'), findsOneWidget);
     expect(find.text('Updated just now'), findsOneWidget);
   });
+
+  testWidgets('deleting an application removes it from the dashboard', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const JobTrailApp());
+
+    await tester.tap(find.text('Flutter Developer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Delete application'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete application?'), findsOneWidget);
+    expect(
+      find.text('This will permanently remove the application at Nova Labs.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Flutter Developer'), findsNothing);
+  });
 }

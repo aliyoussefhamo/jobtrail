@@ -36,4 +36,10 @@ class ApplicationsViewModel extends ChangeNotifier {
     selectedStatus = null;
     notifyListeners();
   }
+
+  void delete(JobApplication application) {
+    _repository.delete(application);
+    selectedStatus = null;
+    notifyListeners();
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../domain/job_application.dart';
+import 'application_details_result.dart';
 import 'application_form_sheet.dart';
 
 class ApplicationDetailsPage extends StatelessWidget {
@@ -17,6 +18,11 @@ class ApplicationDetailsPage extends StatelessWidget {
           tooltip: 'Edit application',
           icon: const Icon(Icons.edit_outlined),
           onPressed: () => _openEditSheet(context),
+        ),
+        IconButton(
+          tooltip: 'Delete application',
+          icon: const Icon(Icons.delete_outline_rounded),
+          onPressed: () => _confirmDelete(context),
         ),
       ],
     ),
@@ -39,7 +45,37 @@ class ApplicationDetailsPage extends StatelessWidget {
       showDragHandle: true,
       builder: (_) => ApplicationFormSheet(initialApplication: application),
     );
-    if (updated != null && context.mounted) Navigator.pop(context, updated);
+    if (updated != null && context.mounted) {
+      Navigator.pop(context, ApplicationUpdated(updated));
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete application?'),
+        content: Text(
+          'This will permanently remove the application at '
+          '${application.company}.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      Navigator.pop(context, const ApplicationDeleted());
+    }
   }
 }
 
