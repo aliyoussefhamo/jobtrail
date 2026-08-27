@@ -61,6 +61,27 @@ void main() {
     expect(find.textContaining('Nova Labs'), findsNothing);
   });
 
+  testWidgets('applications can be sorted by company', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await pumpJobTrail(tester);
+
+    await tester.tap(find.byTooltip('Sort applications'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Company A-Z').last);
+    await tester.pumpAndSettle();
+
+    final northstarPosition = tester.getTopLeft(
+      find.textContaining('Northstar GmbH'),
+    );
+    final novaPosition = tester.getTopLeft(find.textContaining('Nova Labs'));
+
+    expect(northstarPosition.dy, lessThan(novaPosition.dy));
+  });
+
   testWidgets('add application form includes optional notes', (tester) async {
     await pumpJobTrail(tester);
 

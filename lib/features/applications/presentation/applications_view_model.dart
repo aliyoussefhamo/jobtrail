@@ -3,6 +3,16 @@ import 'package:flutter/foundation.dart';
 import '../data/application_repository.dart';
 import '../domain/job_application.dart';
 
+enum ApplicationSort {
+  newest('Newest first'),
+  company('Company A-Z'),
+  status('Status');
+
+  const ApplicationSort(this.label);
+
+  final String label;
+}
+
 class ApplicationsViewModel extends ChangeNotifier {
   ApplicationsViewModel(this._repository);
   final ApplicationRepository _repository;
@@ -10,6 +20,7 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   ApplicationStatus? selectedStatus;
   String searchQuery = '';
+  ApplicationSort selectedSort = ApplicationSort.newest;
   bool isLoading = true;
   String? errorMessage;
 
@@ -17,7 +28,7 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   List<JobApplication> get visibleApplications {
     final normalizedQuery = searchQuery.trim().toLowerCase();
-    return allApplications.where((item) {
+    final results = allApplications.where((item) {
       final matchesStatus =
           selectedStatus == null || item.status == selectedStatus;
       final matchesSearch =
@@ -28,6 +39,29 @@ class ApplicationsViewModel extends ChangeNotifier {
           item.status.label.toLowerCase().contains(normalizedQuery);
       return matchesStatus && matchesSearch;
     }).toList();
+
+    switch (selectedSort) {
+      case ApplicationSort.newest:
+        break;
+      case ApplicationSort.company:
+        results.sort(
+          (first, second) => first.company.toLowerCase().compareTo(
+            second.company.toLowerCase(),
+          ),
+        );
+      case ApplicationSort.status:
+        results.sort((first, second) {
+          final statusComparison = first.status.index.compareTo(
+            second.status.index,
+          );
+          if (statusComparison != 0) return statusComparison;
+          return first.company.toLowerCase().compareTo(
+            second.company.toLowerCase(),
+          );
+        });
+    }
+
+    return results;
   }
 
   int count(ApplicationStatus status) =>
@@ -56,6 +90,11 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   void setSearchQuery(String value) {
     searchQuery = value;
+    notifyListeners();
+  }
+
+  void setSort(ApplicationSort value) {
+    selectedSort = value;
     notifyListeners();
   }
 

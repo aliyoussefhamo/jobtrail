@@ -173,9 +173,34 @@ class _DashboardPageState extends State<DashboardPage> {
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const Spacer(),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('See all'),
+                      PopupMenuButton<ApplicationSort>(
+                        tooltip: 'Sort applications',
+                        initialValue: viewModel.selectedSort,
+                        onSelected: viewModel.setSort,
+                        itemBuilder: (_) => ApplicationSort.values
+                            .map(
+                              (sort) => PopupMenuItem<ApplicationSort>(
+                                value: sort,
+                                child: Row(
+                                  children: [
+                                    if (sort == viewModel.selectedSort)
+                                      const Icon(Icons.check_rounded, size: 18)
+                                    else
+                                      const SizedBox(width: 18),
+                                    const SizedBox(width: 8),
+                                    Text(sort.label),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.sort_rounded, size: 19),
+                            const SizedBox(width: 5),
+                            Text(viewModel.selectedSort.label),
+                          ],
+                        ),
                       ),
                     ],
                   ),
