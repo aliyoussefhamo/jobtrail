@@ -8,6 +8,7 @@ The project is being developed as a production-minded portfolio application, wit
 
 - View a dashboard with application, interview, and offer statistics
 - Filter applications by status
+- Search applications by company, role, or location
 - Add applications with company, role, location, status, and optional notes
 - View complete application details
 - Edit existing applications using a reusable form
@@ -108,7 +109,7 @@ flutter run
 - [x] Optional application notes
 - [x] Widget tests for core user flows
 - [x] Local persistence with SQLite
-- [ ] Application search
+- [x] Application search
 - [ ] Sorting and advanced filtering
 - [ ] Interview reminders and notifications
 - [ ] Improved test coverage
@@ -116,7 +117,7 @@ flutter run
 
 ## Current Project Status
 
-JobTrail is under active development. Application data is stored locally with SQLite and remains available across app restarts. Search and advanced filtering are the next planned features.
+JobTrail is under active development. Application data is stored locally with SQLite and remains available across app restarts. Sorting and advanced filtering are the next planned features.
 
 ## Author
 

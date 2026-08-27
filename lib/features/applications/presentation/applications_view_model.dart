@@ -9,16 +9,24 @@ class ApplicationsViewModel extends ChangeNotifier {
   final List<JobApplication> _applications = [];
 
   ApplicationStatus? selectedStatus;
+  String searchQuery = '';
   bool isLoading = true;
   String? errorMessage;
 
   List<JobApplication> get allApplications => List.unmodifiable(_applications);
 
   List<JobApplication> get visibleApplications {
-    if (selectedStatus == null) return allApplications;
-    return allApplications
-        .where((item) => item.status == selectedStatus)
-        .toList();
+    final normalizedQuery = searchQuery.trim().toLowerCase();
+    return allApplications.where((item) {
+      final matchesStatus =
+          selectedStatus == null || item.status == selectedStatus;
+      final matchesSearch =
+          normalizedQuery.isEmpty ||
+          item.company.toLowerCase().contains(normalizedQuery) ||
+          item.role.toLowerCase().contains(normalizedQuery) ||
+          item.location.toLowerCase().contains(normalizedQuery);
+      return matchesStatus && matchesSearch;
+    }).toList();
   }
 
   int count(ApplicationStatus status) =>
@@ -42,6 +50,11 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   void toggleFilter(ApplicationStatus status) {
     selectedStatus = selectedStatus == status ? null : status;
+    notifyListeners();
+  }
+
+  void setSearchQuery(String value) {
+    searchQuery = value;
     notifyListeners();
   }
 

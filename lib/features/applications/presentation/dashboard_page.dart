@@ -17,6 +17,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   late final ApplicationsViewModel viewModel;
+  final searchController = TextEditingController();
 
   @override
   void initState() {
@@ -26,6 +27,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   void dispose() {
+    searchController.dispose();
     viewModel.dispose();
     super.dispose();
   }
@@ -121,9 +123,21 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(height: 24),
                   TextField(
+                    controller: searchController,
+                    onChanged: viewModel.setSearchQuery,
                     decoration: InputDecoration(
                       hintText: 'Search applications',
                       prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: viewModel.searchQuery.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              onPressed: () {
+                                searchController.clear();
+                                viewModel.setSearchQuery('');
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -167,11 +181,15 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(height: 12),
                   if (items.isEmpty)
-                    const Card(
+                    Card(
                       child: Padding(
-                        padding: EdgeInsets.all(28),
+                        padding: const EdgeInsets.all(28),
                         child: Center(
-                          child: Text('No applications in this stage yet.'),
+                          child: Text(
+                            viewModel.searchQuery.isEmpty
+                                ? 'No applications in this stage yet.'
+                                : 'No applications match your search.',
+                          ),
                         ),
                       ),
                     )

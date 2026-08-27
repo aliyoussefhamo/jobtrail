@@ -19,6 +19,30 @@ void main() {
     expect(find.text('Flutter Developer'), findsOneWidget);
   });
 
+  testWidgets('search filters applications and can be cleared', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await pumpJobTrail(tester);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Search applications'),
+      'PIXEL',
+    );
+    await tester.pump();
+
+    expect(find.textContaining('Pixel Forge'), findsOneWidget);
+    expect(find.textContaining('Nova Labs'), findsNothing);
+
+    await tester.tap(find.byTooltip('Clear search'));
+    await tester.pump();
+
+    expect(find.textContaining('Pixel Forge'), findsOneWidget);
+    expect(find.textContaining('Nova Labs'), findsOneWidget);
+  });
+
   testWidgets('add application form includes optional notes', (tester) async {
     await pumpJobTrail(tester);
 
