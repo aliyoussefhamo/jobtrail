@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/application_repository.dart';
 import '../domain/job_application.dart';
 import 'application_details_page.dart';
+import 'application_form_sheet.dart';
 import 'applications_view_model.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -31,18 +32,19 @@ class _DashboardPageState extends State<DashboardPage> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (_) => const AddApplicationSheet(),
+      builder: (_) => const ApplicationFormSheet(),
     );
     if (result != null) viewModel.add(result);
   }
 
-  void openApplicationDetails(JobApplication application) {
-    Navigator.push(
+  Future<void> openApplicationDetails(JobApplication application) async {
+    final updated = await Navigator.push<JobApplication>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<JobApplication>(
         builder: (_) => ApplicationDetailsPage(application: application),
       ),
     );
+    if (updated != null) viewModel.update(application, updated);
   }
 
   @override
@@ -171,145 +173,6 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       );
     },
-  );
-}
-
-class AddApplicationSheet extends StatefulWidget {
-  const AddApplicationSheet({super.key});
-  @override
-  State<AddApplicationSheet> createState() => _AddApplicationSheetState();
-}
-
-class _AddApplicationSheetState extends State<AddApplicationSheet> {
-  final formKey = GlobalKey<FormState>();
-  final companyController = TextEditingController();
-  final roleController = TextEditingController();
-  final locationController = TextEditingController();
-  final notesController = TextEditingController();
-  ApplicationStatus chosenStatus = ApplicationStatus.applied;
-
-  @override
-  void dispose() {
-    companyController.dispose();
-    roleController.dispose();
-    locationController.dispose();
-    notesController.dispose();
-    super.dispose();
-  }
-
-  void submit() {
-    if (!formKey.currentState!.validate()) return;
-    final company = companyController.text.trim();
-    Navigator.pop(
-      context,
-      JobApplication(
-        company: company,
-        role: roleController.text.trim(),
-        location: locationController.text.trim(),
-        status: chosenStatus,
-        updatedLabel: 'Added just now',
-        notes: notesController.text.trim(),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(
-      20,
-      0,
-      20,
-      MediaQuery.viewInsetsOf(context).bottom + 24,
-    ),
-    child: SingleChildScrollView(
-      child: Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Add a new application',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: companyController,
-              decoration: const InputDecoration(
-                labelText: 'Company',
-                prefixIcon: Icon(Icons.business_rounded),
-              ),
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Please enter a company name'
-                  : null,
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: roleController,
-              decoration: const InputDecoration(
-                labelText: 'Job title',
-                prefixIcon: Icon(Icons.work_outline_rounded),
-              ),
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Please enter a job title'
-                  : null,
-            ),
-            TextFormField(
-              controller: locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                prefixIcon: Icon(Icons.location_on_outlined),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a location';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 14),
-            DropdownButtonFormField<ApplicationStatus>(
-              initialValue: chosenStatus,
-              decoration: const InputDecoration(
-                labelText: 'Application status',
-                prefixIcon: Icon(Icons.flag_outlined),
-              ),
-              items: ApplicationStatus.values.map((status) {
-                return DropdownMenuItem<ApplicationStatus>(
-                  value: status,
-                  child: Text(status.label),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    chosenStatus = value;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: notesController,
-              maxLines: 3,
-              maxLength: 300,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                prefixIcon: Icon(Icons.notes_rounded),
-                alignLabelWithHint: true,
-              ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: submit,
-              icon: const Icon(Icons.save_rounded),
-              label: const Text('Save application'),
-            ),
-          ],
-        ),
-      ),
-    ),
   );
 }
 

@@ -30,4 +30,10 @@ class ApplicationsViewModel extends ChangeNotifier {
     selectedStatus = null;
     notifyListeners();
   }
+
+  void update(JobApplication current, JobApplication updated) {
+    _repository.update(current, updated);
+    selectedStatus = null;
+    notifyListeners();
+  }
 }

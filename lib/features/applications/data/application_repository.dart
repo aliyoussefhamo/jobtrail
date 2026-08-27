@@ -3,6 +3,7 @@ import '../domain/job_application.dart';
 abstract interface class ApplicationRepository {
   List<JobApplication> getAll();
   void add(JobApplication application);
+  void update(JobApplication current, JobApplication updated);
 }
 
 class InMemoryApplicationRepository implements ApplicationRepository {
@@ -42,4 +43,10 @@ class InMemoryApplicationRepository implements ApplicationRepository {
 
   @override
   void add(JobApplication application) => _items.insert(0, application);
+
+  @override
+  void update(JobApplication current, JobApplication updated) {
+    final index = _items.indexOf(current);
+    if (index != -1) _items[index] = updated;
+  }
 }

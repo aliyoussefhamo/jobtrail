@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../domain/job_application.dart';
+import 'application_form_sheet.dart';
 
 class ApplicationDetailsPage extends StatelessWidget {
   const ApplicationDetailsPage({required this.application, super.key});
@@ -9,7 +10,16 @@ class ApplicationDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Application details')),
+    appBar: AppBar(
+      title: const Text('Application details'),
+      actions: [
+        IconButton(
+          tooltip: 'Edit application',
+          icon: const Icon(Icons.edit_outlined),
+          onPressed: () => _openEditSheet(context),
+        ),
+      ],
+    ),
     body: ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -21,6 +31,16 @@ class ApplicationDetailsPage extends StatelessWidget {
       ],
     ),
   );
+
+  Future<void> _openEditSheet(BuildContext context) async {
+    final updated = await showModalBottomSheet<JobApplication>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => ApplicationFormSheet(initialApplication: application),
+    );
+    if (updated != null && context.mounted) Navigator.pop(context, updated);
+  }
 }
 
 class _ApplicationHeader extends StatelessWidget {
