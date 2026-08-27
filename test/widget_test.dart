@@ -19,4 +19,18 @@ void main() {
     expect(find.text('Add a new application'), findsOneWidget);
     expect(find.text('Notes (optional)'), findsOneWidget);
   });
+
+  testWidgets('application card opens its details', (tester) async {
+    await tester.pumpWidget(const JobTrailApp());
+
+    await tester.tap(find.text('Flutter Developer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Application details'), findsOneWidget);
+    expect(find.text('Berlin - Remote'), findsOneWidget);
+    expect(find.text('Interview tomorrow, 10:00'), findsOneWidget);
+
+    await tester.scrollUntilVisible(find.text('No notes added yet.'), 200);
+    expect(find.text('No notes added yet.'), findsOneWidget);
+  });
 }

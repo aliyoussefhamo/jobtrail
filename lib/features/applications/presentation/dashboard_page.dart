@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/application_repository.dart';
 import '../domain/job_application.dart';
+import 'application_details_page.dart';
 import 'applications_view_model.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -33,6 +34,15 @@ class _DashboardPageState extends State<DashboardPage> {
       builder: (_) => const AddApplicationSheet(),
     );
     if (result != null) viewModel.add(result);
+  }
+
+  void openApplicationDetails(JobApplication application) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ApplicationDetailsPage(application: application),
+      ),
+    );
   }
 
   @override
@@ -146,7 +156,10 @@ class _DashboardPageState extends State<DashboardPage> {
               ...items.map(
                 (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: JobCard(item),
+                  child: JobCard(
+                    item,
+                    onTap: () => openApplicationDetails(item),
+                  ),
                 ),
               ),
           ],
@@ -382,92 +395,98 @@ class Metric extends StatelessWidget {
 }
 
 class JobCard extends StatelessWidget {
-  const JobCard(this.item, {super.key});
+  const JobCard(this.item, {required this.onTap, super.key});
+
   final JobApplication item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: item.status.color.withValues(alpha: .11),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              item.initials,
-              style: TextStyle(
-                color: item.status.color,
-                fontWeight: FontWeight.w800,
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: item.status.color.withValues(alpha: .11),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                item.initials,
+                style: TextStyle(
+                  color: item.status.color,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.role,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.role,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  "${item.company} - ${item.location}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: item.status.color.withValues(alpha: .1),
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                      child: Text(
-                        item.status.label,
-                        style: TextStyle(
-                          color: item.status.color,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                  const SizedBox(height: 3),
+                  Text(
+                    "${item.company} - ${item.location}",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: item.status.color.withValues(alpha: .1),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          item.status.label,
+                          style: TextStyle(
+                            color: item.status.color,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 9),
-                    Expanded(
-                      child: Text(
-                        item.updatedLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Text(
+                          item.updatedLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-        ],
+            const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+          ],
+        ),
       ),
     ),
   );
