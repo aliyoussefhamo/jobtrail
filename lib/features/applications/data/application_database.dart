@@ -19,8 +19,9 @@ class ApplicationDatabase {
     final databasePath = path.join(databasesPath, 'jobtrail.db');
     _database = await openDatabase(
       databasePath,
-      version: 1,
+      version: 2,
       onCreate: _createDatabase,
+      onUpgrade: _upgradeDatabase,
     );
     return _database!;
   }
@@ -38,9 +39,33 @@ class ApplicationDatabase {
       )
     ''');
 
+    await _insertApplications(database, [
+      ...sampleApplications,
+      ...demoApplications,
+    ]);
+  }
+
+  Future<void> _upgradeDatabase(
+    Database database,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 2) {
+      await _insertApplications(database, demoApplications);
+    }
+  }
+
+  Future<void> _insertApplications(
+    Database database,
+    List<JobApplication> applications,
+  ) async {
     final batch = database.batch();
-    for (final application in sampleApplications.reversed) {
-      batch.insert(applicationsTable, application.toMap());
+    for (final application in applications.reversed) {
+      batch.insert(
+        applicationsTable,
+        application.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
     await batch.commit(noResult: true);
   }
@@ -78,5 +103,80 @@ const sampleApplications = [
     location: 'Munich - Onsite',
     status: ApplicationStatus.rejected,
     updatedLabel: 'Updated yesterday',
+  ),
+];
+
+const demoApplications = [
+  JobApplication(
+    id: 'demo-google-flutter-developer',
+    company: 'Google',
+    role: 'Flutter Developer',
+    location: 'Munich - Hybrid',
+    status: ApplicationStatus.applied,
+    updatedLabel: 'Applied recently',
+    notes: 'Applied through LinkedIn',
+  ),
+  JobApplication(
+    id: 'demo-amazon-mobile-engineer',
+    company: 'Amazon',
+    role: 'Mobile Engineer',
+    location: 'Berlin - Onsite',
+    status: ApplicationStatus.interview,
+    updatedLabel: 'Interview scheduled',
+    notes: 'Technical interview next Monday',
+  ),
+  JobApplication(
+    id: 'demo-zalando-ios-developer',
+    company: 'Zalando',
+    role: 'iOS Developer',
+    location: 'Berlin - Hybrid',
+    status: ApplicationStatus.rejected,
+    updatedLabel: 'Updated recently',
+    notes: 'Rejected after first interview',
+  ),
+  JobApplication(
+    id: 'demo-bmw-flutter-engineer',
+    company: 'BMW Group',
+    role: 'Flutter Engineer',
+    location: 'Munich - Onsite',
+    status: ApplicationStatus.offer,
+    updatedLabel: 'Offer received',
+    notes: 'Reviewing salary and benefits',
+  ),
+  JobApplication(
+    id: 'demo-delivery-hero-senior-mobile',
+    company: 'Delivery Hero',
+    role: 'Senior Mobile Developer',
+    location: 'Berlin - Remote',
+    status: ApplicationStatus.interview,
+    updatedLabel: 'Interview scheduled',
+    notes: 'Prepare architecture questions',
+  ),
+  JobApplication(
+    id: 'demo-sap-software-engineer',
+    company: 'SAP',
+    role: 'Software Engineer',
+    location: 'Walldorf - Hybrid',
+    status: ApplicationStatus.applied,
+    updatedLabel: 'Applied recently',
+    notes: 'Waiting for recruiter response',
+  ),
+  JobApplication(
+    id: 'demo-adidas-mobile-developer',
+    company: 'Adidas',
+    role: 'Mobile App Developer',
+    location: 'Herzogenaurach - Hybrid',
+    status: ApplicationStatus.offer,
+    updatedLabel: 'Offer received',
+    notes: 'Offer deadline next Friday',
+  ),
+  JobApplication(
+    id: 'demo-deutsche-bank-junior-flutter',
+    company: 'Deutsche Bank',
+    role: 'Junior Flutter Developer',
+    location: 'Frankfurt - Hybrid',
+    status: ApplicationStatus.applied,
+    updatedLabel: 'Applied recently',
+    notes: 'Application submitted through website',
   ),
 ];
