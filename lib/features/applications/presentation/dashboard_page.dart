@@ -171,11 +171,14 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
   final formKey = GlobalKey<FormState>();
   final companyController = TextEditingController();
   final roleController = TextEditingController();
+  final locationController = TextEditingController();
+  ApplicationStatus chosenStatus = ApplicationStatus.applied;
 
   @override
   void dispose() {
     companyController.dispose();
     roleController.dispose();
+    locationController.dispose();
     super.dispose();
   }
 
@@ -187,8 +190,8 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
       JobApplication(
         company: company,
         role: roleController.text.trim(),
-        location: 'Not specified',
-        status: ApplicationStatus.applied,
+        location: locationController.text.trim(),
+        status: chosenStatus,
         note: 'Added just now',
         initials: company.substring(0, 1).toUpperCase(),
       ),
@@ -235,6 +238,40 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
               validator: (value) => value == null || value.trim().isEmpty
                   ? 'Please enter a job title'
                   : null,
+            ),
+            TextFormField(
+              controller: locationController,
+              decoration: const InputDecoration(
+                labelText: 'Location',
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter a location';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            DropdownButtonFormField<ApplicationStatus>(
+              initialValue: chosenStatus,
+              decoration: const InputDecoration(
+                labelText: 'Application status',
+                prefixIcon: Icon(Icons.flag_outlined),
+              ),
+              items: ApplicationStatus.values.map((status) {
+                return DropdownMenuItem<ApplicationStatus>(
+                  value: status,
+                  child: Text(status.label),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    chosenStatus = value;
+                  });
+                }
+              },
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
