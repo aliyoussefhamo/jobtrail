@@ -46,6 +46,9 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
     Navigator.pop(
       context,
       JobApplication(
+        id:
+            widget.initialApplication?.id ??
+            DateTime.now().microsecondsSinceEpoch.toString(),
         company: companyController.text.trim(),
         role: roleController.text.trim(),
         location: locationController.text.trim(),

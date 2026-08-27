@@ -14,6 +14,7 @@ enum ApplicationStatus {
 
 class JobApplication {
   const JobApplication({
+    required this.id,
     required this.company,
     required this.role,
     required this.location,
@@ -22,6 +23,7 @@ class JobApplication {
     this.notes = '',
   });
 
+  final String id;
   final String company;
   final String role;
   final String location;

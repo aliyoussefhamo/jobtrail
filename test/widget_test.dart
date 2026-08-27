@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jobtrail/app/jobtrail_app.dart';
+import 'package:jobtrail/features/applications/data/application_repository.dart';
+
+Future<void> pumpJobTrail(WidgetTester tester) async {
+  await tester.pumpWidget(
+    JobTrailApp(repository: InMemoryApplicationRepository()),
+  );
+  await tester.pumpAndSettle();
+}
 
 void main() {
   testWidgets('dashboard shows application overview', (tester) async {
-    await tester.pumpWidget(const JobTrailApp());
+    await pumpJobTrail(tester);
     expect(find.text('JobTrail'), findsOneWidget);
     expect(find.text('Good morning, Ali'), findsOneWidget);
     expect(find.text('Recent applications'), findsOneWidget);
@@ -12,7 +20,7 @@ void main() {
   });
 
   testWidgets('add application form includes optional notes', (tester) async {
-    await tester.pumpWidget(const JobTrailApp());
+    await pumpJobTrail(tester);
 
     await tester.tap(find.text('Add application'));
     await tester.pumpAndSettle();
@@ -22,7 +30,7 @@ void main() {
   });
 
   testWidgets('application card opens its details', (tester) async {
-    await tester.pumpWidget(const JobTrailApp());
+    await pumpJobTrail(tester);
 
     await tester.tap(find.text('Flutter Developer'));
     await tester.pumpAndSettle();
@@ -36,7 +44,7 @@ void main() {
   });
 
   testWidgets('editing an application updates the dashboard', (tester) async {
-    await tester.pumpWidget(const JobTrailApp());
+    await pumpJobTrail(tester);
 
     await tester.tap(find.text('Flutter Developer'));
     await tester.pumpAndSettle();
@@ -63,7 +71,7 @@ void main() {
   testWidgets('deleting an application removes it from the dashboard', (
     tester,
   ) async {
-    await tester.pumpWidget(const JobTrailApp());
+    await pumpJobTrail(tester);
 
     await tester.tap(find.text('Flutter Developer'));
     await tester.pumpAndSettle();

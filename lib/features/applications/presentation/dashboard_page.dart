@@ -8,7 +8,9 @@ import 'application_form_sheet.dart';
 import 'applications_view_model.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  const DashboardPage({required this.repository, super.key});
+
+  final ApplicationRepository repository;
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
@@ -19,7 +21,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    viewModel = ApplicationsViewModel(InMemoryApplicationRepository());
+    viewModel = ApplicationsViewModel(widget.repository)..load();
   }
 
   @override
@@ -35,7 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
       showDragHandle: true,
       builder: (_) => const ApplicationFormSheet(),
     );
-    if (result != null) viewModel.add(result);
+    if (result != null) await viewModel.add(result);
   }
 
   Future<void> openApplicationDetails(JobApplication application) async {
@@ -48,9 +50,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
     switch (result) {
       case ApplicationUpdated(application: final updated):
-        viewModel.update(application, updated);
+        await viewModel.update(application, updated);
       case ApplicationDeleted():
-        viewModel.delete(application);
+        await viewModel.delete(application);
       case null:
         break;
     }
@@ -91,90 +93,100 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ],
         ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 104),
-          children: [
-            Text(
-              'Good morning, Ali',
-              style: Theme.of(context).textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Your next opportunity is already on the trail.',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-            SummaryCard(
-              total: viewModel.allApplications.length,
-              interviews: viewModel.count(ApplicationStatus.interview),
-              offers: viewModel.count(ApplicationStatus.offer),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search applications',
-                prefixIcon: const Icon(Icons.search_rounded),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: ApplicationStatus.values.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final status = ApplicationStatus.values[i];
-                  return FilterChip(
-                    selected: viewModel.selectedStatus == status,
-                    avatar: Icon(status.icon, size: 16),
-                    label: Text(status.label),
-                    onSelected: (_) => viewModel.toggleFilter(status),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 28),
-            Row(
-              children: [
-                Text(
-                  'Recent applications',
-                  style: Theme.of(context).textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const Spacer(),
-                TextButton(onPressed: () {}, child: const Text('See all')),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (items.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(28),
-                  child: Center(
-                    child: Text('No applications in this stage yet.'),
-                  ),
-                ),
+        body: viewModel.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : viewModel.errorMessage != null
+            ? _LoadError(
+                message: viewModel.errorMessage!,
+                onRetry: viewModel.load,
               )
-            else
-              ...items.map(
-                (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: JobCard(
-                    item,
-                    onTap: () => openApplicationDetails(item),
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 104),
+                children: [
+                  Text(
+                    'Good morning, Ali',
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w800),
                   ),
-                ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Your next opportunity is already on the trail.',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
+                  SummaryCard(
+                    total: viewModel.allApplications.length,
+                    interviews: viewModel.count(ApplicationStatus.interview),
+                    offers: viewModel.count(ApplicationStatus.offer),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search applications',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 40,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: ApplicationStatus.values.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      itemBuilder: (_, i) {
+                        final status = ApplicationStatus.values[i];
+                        return FilterChip(
+                          selected: viewModel.selectedStatus == status,
+                          avatar: Icon(status.icon, size: 16),
+                          label: Text(status.label),
+                          onSelected: (_) => viewModel.toggleFilter(status),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Text(
+                        'Recent applications',
+                        style: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('See all'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (items.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(28),
+                        child: Center(
+                          child: Text('No applications in this stage yet.'),
+                        ),
+                      ),
+                    )
+                  else
+                    ...items.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: JobCard(
+                          item,
+                          onTap: () => openApplicationDetails(item),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-          ],
-        ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: openAddApplication,
           icon: const Icon(Icons.add_rounded),
@@ -182,6 +194,30 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       );
     },
+  );
+}
+
+class _LoadError extends StatelessWidget {
+  const _LoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline_rounded, size: 44),
+          const SizedBox(height: 12),
+          Text(message),
+          const SizedBox(height: 12),
+          OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+        ],
+      ),
+    ),
   );
 }
 

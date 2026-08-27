@@ -12,6 +12,7 @@ The project is being developed as a production-minded portfolio application, wit
 - View complete application details
 - Edit existing applications using a reusable form
 - Delete applications with a confirmation dialog
+- Persist application data locally with SQLite
 - Generate company initials automatically
 - Validate required form fields
 - Update dashboard data and statistics reactively
@@ -60,6 +61,8 @@ lib/
 - Reusable add/edit application form
 - Type-safe navigation results using sealed classes
 - Repository abstraction for separating data access from UI logic
+- SQLite persistence with asynchronous CRUD operations
+- Dependency injection for production and test repositories
 - Widget tests covering the main user flows
 
 ## Tests
@@ -104,7 +107,7 @@ flutter run
 - [x] Create, view, update, and delete applications
 - [x] Optional application notes
 - [x] Widget tests for core user flows
-- [ ] Local persistence with SQLite
+- [x] Local persistence with SQLite
 - [ ] Application search
 - [ ] Sorting and advanced filtering
 - [ ] Interview reminders and notifications
@@ -113,7 +116,7 @@ flutter run
 
 ## Current Project Status
 
-JobTrail is under active development. Application data is currently stored in memory and resets when the app restarts. Local SQLite persistence is the next planned feature.
+JobTrail is under active development. Application data is stored locally with SQLite and remains available across app restarts. Search and advanced filtering are the next planned features.
 
 ## Author
 
