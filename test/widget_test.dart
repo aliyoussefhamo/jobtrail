@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jobtrail/main.dart';
+import 'package:jobtrail/app/jobtrail_app.dart';
 
 void main() {
   testWidgets('dashboard shows application overview', (tester) async {
