@@ -12,28 +12,28 @@ class InMemoryApplicationRepository implements ApplicationRepository {
       role: 'Flutter Developer',
       location: 'Berlin - Remote',
       status: ApplicationStatus.interview,
-      note: 'Interview tomorrow, 10:00',
+      updatedLabel: 'Interview tomorrow, 10:00',
     ),
     const JobApplication(
       company: 'Northstar GmbH',
       role: 'Mobile Software Engineer',
       location: 'Frankfurt - Hybrid',
       status: ApplicationStatus.applied,
-      note: 'Applied 2 days ago',
+      updatedLabel: 'Applied 2 days ago',
     ),
     const JobApplication(
       company: 'Pixel Forge',
       role: 'iOS & Flutter Developer',
       location: 'Hamburg - Remote',
       status: ApplicationStatus.offer,
-      note: 'Offer received today',
+      updatedLabel: 'Offer received today',
     ),
     const JobApplication(
       company: 'Orbit Commerce',
       role: 'Junior Flutter Engineer',
       location: 'Munich - Onsite',
       status: ApplicationStatus.rejected,
-      note: 'Updated yesterday',
+      updatedLabel: 'Updated yesterday',
     ),
   ];
 

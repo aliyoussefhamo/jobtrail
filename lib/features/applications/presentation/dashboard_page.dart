@@ -172,6 +172,7 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
   final companyController = TextEditingController();
   final roleController = TextEditingController();
   final locationController = TextEditingController();
+  final notesController = TextEditingController();
   ApplicationStatus chosenStatus = ApplicationStatus.applied;
 
   @override
@@ -179,6 +180,7 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
     companyController.dispose();
     roleController.dispose();
     locationController.dispose();
+    notesController.dispose();
     super.dispose();
   }
 
@@ -192,7 +194,8 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
         role: roleController.text.trim(),
         location: locationController.text.trim(),
         status: chosenStatus,
-        note: 'Added just now',
+        updatedLabel: 'Added just now',
+        notes: notesController.text.trim(),
       ),
     );
   }
@@ -271,6 +274,18 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
                   });
                 }
               },
+            ),
+            const SizedBox(height: 14),
+            TextFormField(
+              controller: notesController,
+              maxLines: 3,
+              maxLength: 300,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                prefixIcon: Icon(Icons.notes_rounded),
+                alignLabelWithHint: true,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -437,7 +452,7 @@ class JobCard extends StatelessWidget {
                     const SizedBox(width: 9),
                     Expanded(
                       child: Text(
-                        item.note,
+                        item.updatedLabel,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

@@ -18,31 +18,34 @@ class JobApplication {
     required this.role,
     required this.location,
     required this.status,
-    required this.note,
+    required this.updatedLabel,
+    this.notes = '',
   });
 
   final String company;
   final String role;
   final String location;
   final ApplicationStatus status;
-  final String note;
+  final String updatedLabel;
+  final String notes;
+
   String get initials {
-  final words = company
-      .trim()
-      .split(RegExp(r'\s+'))
-      .where((word) => word.isNotEmpty)
-      .toList();
+    final words = company
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .toList();
 
-  if (words.isEmpty) {
-    return '?';
+    if (words.isEmpty) {
+      return '?';
+    }
+
+    if (words.length == 1) {
+      final word = words.first;
+      final length = word.length >= 2 ? 2 : 1;
+      return word.substring(0, length).toUpperCase();
+    }
+
+    return '${words[0][0]}${words[1][0]}'.toUpperCase();
   }
-
-  if (words.length == 1) {
-    final word = words.first;
-    final length = word.length >= 2 ? 2 : 1;
-    return word.substring(0, length).toUpperCase();
-  }
-
-  return '${words[0][0]}${words[1][0]}'.toUpperCase();
-}
 }
