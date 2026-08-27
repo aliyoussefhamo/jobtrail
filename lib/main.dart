@@ -56,7 +56,9 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   Status? selected;
-  static const jobs = [
+  final companyController = TextEditingController();
+  final roleController = TextEditingController();
+  final jobs = <Job>[
     Job(
       'Nova Labs',
       'Flutter Developer',
@@ -81,7 +83,104 @@ class _DashboardPageState extends State<DashboardPage> {
       'Offer received today',
       'PF',
     ),
+    Job(
+      'Orbit Commerce',
+      'Junior Flutter Engineer',
+      'Munich - Onsite',
+      Status.rejected,
+      'Updated yesterday',
+      'OC',
+    ),
   ];
+
+  @override
+  void dispose() {
+    companyController.dispose();
+    roleController.dispose();
+    super.dispose();
+  }
+
+  void openAddApplication() {
+  companyController.clear();
+  roleController.clear();
+
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          0,
+          20,
+          MediaQuery.viewInsetsOf(sheetContext).bottom + 24,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Add a new application',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: companyController,
+                decoration: const InputDecoration(
+                  labelText: 'Company',
+                  prefixIcon: Icon(Icons.business_rounded),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: roleController,
+                decoration: const InputDecoration(
+                  labelText: 'Job title',
+                  prefixIcon: Icon(Icons.work_outline_rounded),
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () {
+                  final company = companyController.text.trim();
+                  final role = roleController.text.trim();
+
+                  if (company.isEmpty || role.isEmpty) {
+                    return;
+                  }
+
+                  setState(() {
+                    jobs.insert(
+                      0,
+                      Job(
+                        company,
+                        role,
+                        'Not specified',
+                        Status.applied,
+                        'Added just now',
+                        company.substring(0, 1).toUpperCase(),
+                      ),
+                    );
+                    selected = null;
+                  });
+
+                  Navigator.pop(sheetContext);
+                },
+                icon: const Icon(Icons.save_rounded),
+                label: const Text('Save application'),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +297,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: openAddApplication,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add application'),
       ),
