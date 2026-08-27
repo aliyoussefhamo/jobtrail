@@ -193,7 +193,6 @@ class _AddApplicationSheetState extends State<AddApplicationSheet> {
         location: locationController.text.trim(),
         status: chosenStatus,
         note: 'Added just now',
-        initials: company.substring(0, 1).toUpperCase(),
       ),
     );
   }

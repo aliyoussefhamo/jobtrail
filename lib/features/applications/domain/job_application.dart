@@ -19,7 +19,6 @@ class JobApplication {
     required this.location,
     required this.status,
     required this.note,
-    required this.initials,
   });
 
   final String company;
@@ -27,5 +26,23 @@ class JobApplication {
   final String location;
   final ApplicationStatus status;
   final String note;
-  final String initials;
+  String get initials {
+  final words = company
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .toList();
+
+  if (words.isEmpty) {
+    return '?';
+  }
+
+  if (words.length == 1) {
+    final word = words.first;
+    final length = word.length >= 2 ? 2 : 1;
+    return word.substring(0, length).toUpperCase();
+  }
+
+  return '${words[0][0]}${words[1][0]}'.toUpperCase();
+}
 }

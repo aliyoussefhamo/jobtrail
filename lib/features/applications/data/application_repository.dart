@@ -13,7 +13,6 @@ class InMemoryApplicationRepository implements ApplicationRepository {
       location: 'Berlin - Remote',
       status: ApplicationStatus.interview,
       note: 'Interview tomorrow, 10:00',
-      initials: 'NL',
     ),
     const JobApplication(
       company: 'Northstar GmbH',
@@ -21,7 +20,6 @@ class InMemoryApplicationRepository implements ApplicationRepository {
       location: 'Frankfurt - Hybrid',
       status: ApplicationStatus.applied,
       note: 'Applied 2 days ago',
-      initials: 'NG',
     ),
     const JobApplication(
       company: 'Pixel Forge',
@@ -29,7 +27,6 @@ class InMemoryApplicationRepository implements ApplicationRepository {
       location: 'Hamburg - Remote',
       status: ApplicationStatus.offer,
       note: 'Offer received today',
-      initials: 'PF',
     ),
     const JobApplication(
       company: 'Orbit Commerce',
@@ -37,7 +34,6 @@ class InMemoryApplicationRepository implements ApplicationRepository {
       location: 'Munich - Onsite',
       status: ApplicationStatus.rejected,
       note: 'Updated yesterday',
-      initials: 'OC',
     ),
   ];
 
