@@ -24,7 +24,8 @@ class ApplicationsViewModel extends ChangeNotifier {
           normalizedQuery.isEmpty ||
           item.company.toLowerCase().contains(normalizedQuery) ||
           item.role.toLowerCase().contains(normalizedQuery) ||
-          item.location.toLowerCase().contains(normalizedQuery);
+          item.location.toLowerCase().contains(normalizedQuery) ||
+          item.status.label.toLowerCase().contains(normalizedQuery);
       return matchesStatus && matchesSearch;
     }).toList();
   }

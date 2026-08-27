@@ -8,7 +8,7 @@ The project is being developed as a production-minded portfolio application, wit
 
 - View a dashboard with application, interview, and offer statistics
 - Filter applications by status
-- Search applications by company, role, or location
+- Search applications by company, role, location, or status
 - Add applications with company, role, location, status, and optional notes
 - View complete application details
 - Edit existing applications using a reusable form

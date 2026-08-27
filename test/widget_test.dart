@@ -43,6 +43,24 @@ void main() {
     expect(find.textContaining('Nova Labs'), findsOneWidget);
   });
 
+  testWidgets('search finds applications by status', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await pumpJobTrail(tester);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Search applications'),
+      'offer',
+    );
+    await tester.pump();
+
+    expect(find.textContaining('Pixel Forge'), findsOneWidget);
+    expect(find.textContaining('Nova Labs'), findsNothing);
+  });
+
   testWidgets('add application form includes optional notes', (tester) async {
     await pumpJobTrail(tester);
 
