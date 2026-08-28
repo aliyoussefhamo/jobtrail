@@ -5,6 +5,7 @@ import '../domain/job_application.dart';
 import 'application_details_page.dart';
 import 'application_form_sheet.dart';
 import 'applications_view_model.dart';
+import 'upcoming_interview_card.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({required this.repository, super.key});
@@ -116,6 +117,16 @@ class _DashboardPageState extends State<DashboardPage> {
                     interviews: viewModel.count(ApplicationStatus.interview),
                     offers: viewModel.count(ApplicationStatus.offer),
                   ),
+                  if (!viewModel.hasActiveFilters &&
+                      viewModel.upcomingInterviews.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    UpcomingInterviewCard(
+                      application: viewModel.upcomingInterviews.first,
+                      onTap: () => openApplicationDetails(
+                        viewModel.upcomingInterviews.first,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   TextField(
                     controller: searchController,

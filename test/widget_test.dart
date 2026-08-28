@@ -4,6 +4,10 @@ import 'package:jobtrail/app/jobtrail_app.dart';
 import 'package:jobtrail/features/applications/data/application_repository.dart';
 
 Future<void> pumpJobTrail(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(1080, 1920);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(
     JobTrailApp(repository: InMemoryApplicationRepository()),
   );
@@ -16,6 +20,7 @@ void main() {
     expect(find.text('JobTrail'), findsOneWidget);
     expect(find.text('Good morning, Ali'), findsOneWidget);
     expect(find.text('Recent applications'), findsOneWidget);
+    expect(find.text('Upcoming interview'), findsOneWidget);
     expect(find.text('Flutter Developer'), findsOneWidget);
   });
 
@@ -40,7 +45,7 @@ void main() {
     await tester.pump();
 
     expect(find.textContaining('Pixel Forge'), findsOneWidget);
-    expect(find.textContaining('Nova Labs'), findsOneWidget);
+    expect(find.textContaining('Nova Labs'), findsWidgets);
   });
 
   testWidgets('search finds applications by status', (tester) async {
@@ -97,7 +102,9 @@ void main() {
     final northstarPosition = tester.getTopLeft(
       find.textContaining('Northstar GmbH'),
     );
-    final novaPosition = tester.getTopLeft(find.textContaining('Nova Labs'));
+    final novaPosition = tester.getTopLeft(
+      find.textContaining('Nova Labs').last,
+    );
 
     expect(northstarPosition.dy, lessThan(novaPosition.dy));
   });
@@ -112,6 +119,16 @@ void main() {
     expect(find.text('Application date'), findsOneWidget);
     expect(find.text('Interview date (optional)'), findsOneWidget);
     expect(find.text('Notes (optional)'), findsOneWidget);
+  });
+
+  testWidgets('upcoming interview opens application details', (tester) async {
+    await pumpJobTrail(tester);
+
+    await tester.tap(find.text('Upcoming interview'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Application details'), findsOneWidget);
+    expect(find.text('Nova Labs'), findsWidgets);
   });
 
   testWidgets('application card opens its details', (tester) async {

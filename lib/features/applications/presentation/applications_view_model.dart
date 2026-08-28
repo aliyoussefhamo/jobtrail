@@ -41,6 +41,27 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   List<JobApplication> get allApplications => List.unmodifiable(_applications);
 
+  List<JobApplication> get upcomingInterviews {
+    final now = _now();
+    final today = DateTime(now.year, now.month, now.day);
+    final interviews =
+        allApplications.where((application) {
+          if (application.status != ApplicationStatus.interview) return false;
+          final interviewDate = application.interviewDate;
+          if (interviewDate == null) return false;
+          final date = DateTime(
+            interviewDate.year,
+            interviewDate.month,
+            interviewDate.day,
+          );
+          return !date.isBefore(today);
+        }).toList()..sort(
+          (first, second) =>
+              first.interviewDate!.compareTo(second.interviewDate!),
+        );
+    return interviews;
+  }
+
   List<JobApplication> get visibleApplications {
     final normalizedQuery = searchQuery.trim().toLowerCase();
     final results = allApplications.where((item) {
@@ -84,6 +105,11 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   int count(ApplicationStatus status) =>
       allApplications.where((item) => item.status == status).length;
+
+  bool get hasActiveFilters =>
+      searchQuery.trim().isNotEmpty ||
+      selectedStatuses.isNotEmpty ||
+      selectedDateFilter != ApplicationDateFilter.anyTime;
 
   Future<void> load() async {
     isLoading = true;
