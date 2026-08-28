@@ -251,7 +251,7 @@ void main() {
     await tester.tap(find.text('Upcoming interview'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Application details'), findsOneWidget);
+    expect(find.text('Details'), findsOneWidget);
     expect(find.text('Nova Labs'), findsWidgets);
   });
 
@@ -261,7 +261,7 @@ void main() {
     await tester.tap(find.text('Flutter Developer'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Application details'), findsOneWidget);
+    expect(find.text('Details'), findsOneWidget);
     expect(find.text('Berlin - Remote'), findsOneWidget);
     expect(find.text('Interview tomorrow, 10:00'), findsOneWidget);
 
@@ -292,7 +292,7 @@ void main() {
     await tester.tap(find.text('Save changes'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Application details'), findsOneWidget);
+    expect(find.text('Details'), findsOneWidget);
     expect(find.text('Senior Flutter Developer'), findsWidgets);
 
     await tester.pageBack();

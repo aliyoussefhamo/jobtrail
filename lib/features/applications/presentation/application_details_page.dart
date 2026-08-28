@@ -40,7 +40,7 @@ class _ApplicationDetailsPageState extends State<ApplicationDetailsPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Application details'),
+      title: const Text('Details'),
       actions: [
         IconButton(
           tooltip: 'Edit application',
@@ -57,7 +57,12 @@ class _ApplicationDetailsPageState extends State<ApplicationDetailsPage> {
     body: Stack(
       children: [
         ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            MediaQuery.viewPaddingOf(context).bottom + 32,
+          ),
           children: [
             _ApplicationHeader(application),
             const SizedBox(height: 24),
