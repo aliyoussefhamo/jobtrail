@@ -1,5 +1,7 @@
 # JobTrail
 
+[![Flutter CI](https://github.com/aliyoussefhamo/jobtrail/actions/workflows/flutter_ci.yml/badge.svg)](https://github.com/aliyoussefhamo/jobtrail/actions/workflows/flutter_ci.yml)
+
 JobTrail is a cross-platform Flutter application for organizing and tracking job applications throughout the hiring process.
 
 The project is being developed as a production-minded portfolio application, with a focus on clean architecture, maintainable code, responsive UI, and automated testing.
@@ -44,21 +46,27 @@ lib/
 └── features/
     └── applications/
         ├── data/
-        │   └── application_repository.dart
+        │   ├── application_database.dart
+        │   ├── application_event_mapper.dart
+        │   ├── application_repository.dart
+        │   └── job_application_mapper.dart
         ├── domain/
+        │   ├── application_event.dart
         │   └── job_application.dart
         └── presentation/
             ├── application_details_page.dart
-            ├── application_details_result.dart
             ├── application_form_sheet.dart
+            ├── application_timeline.dart
             ├── applications_view_model.dart
-            └── dashboard_page.dart
+            ├── dashboard_page.dart
+            └── upcoming_interview_card.dart
 ```
 
 - **Domain** contains the core application model and status definitions.
-- **Data** provides the repository abstraction and current in-memory implementation.
-- **Presentation** contains screens, reusable UI, navigation results, and state management.
+- **Data** owns SQLite access, mapping, migrations, and repository implementations.
+- **Presentation** contains screens, reusable widgets, navigation, and UI state.
 - **ViewModel** coordinates UI actions and notifies widgets when application data changes.
+- **Repository** keeps persistence details out of the presentation layer and allows test doubles to be injected.
 
 ## Technical Highlights
 
@@ -66,30 +74,39 @@ lib/
 - Material 3 interface
 - `ChangeNotifier` and `ListenableBuilder` for state updates
 - Reusable add/edit application form
-- Type-safe navigation results using sealed classes
 - Repository abstraction for separating data access from UI logic
 - SQLite persistence with asynchronous CRUD operations
+- Database migrations and application activity events
+- Local interview reminders with notification permission handling
 - Dependency injection for production and test repositories
+- Loading, empty, success, and error states with retry actions
+- Time-aware dashboard greeting and responsive safe-area handling
 - Widget tests covering the main user flows
 - SQLite integration tests covering CRUD, cascading deletes, and migrations
 - 86% automated test coverage across application code
+- GitHub Actions CI for formatting, static analysis, and automated tests
 
 ## Tests
 
-The widget test suite currently covers:
+The project currently includes 36 automated tests covering:
 
-- Dashboard content
-- Add-application form
-- Details navigation
-- Application editing
-- Application deletion
+- Dashboard, search, sorting, and combined filters
+- Empty, loading, retry, success, and failure states
+- Add, edit, details, and delete user flows
+- Time-aware greetings and upcoming interviews
+- Notification scheduling and cancellation
+- Domain-to-database mapping
+- SQLite CRUD, migrations, events, and cascading deletes
 
 Run the checks with:
 
 ```bash
+dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
 ```
+
+The same checks run automatically on every push to `main` and every pull request through GitHub Actions.
 
 ## Getting Started
 
@@ -125,10 +142,13 @@ flutter run
 - [x] Interview reminders and notifications
 - [x] Improved test coverage
 - [x] App branding and release assets
+- [x] Empty, loading, and error states
+- [x] Automated GitHub Actions CI
+- [ ] Android release APK
 
 ## Current Project Status
 
-JobTrail is under active development. Application data is stored locally with SQLite and remains available across app restarts. Multi-status and application-date filters can be combined with search, and local notifications remind users about upcoming interviews.
+JobTrail is feature-complete for its first portfolio release. Application data is stored locally with SQLite and remains available across app restarts. Multi-status and application-date filters can be combined with search, while local notifications remind users about upcoming interviews. The next milestone is packaging and publishing the first Android release.
 
 ## Author
 
