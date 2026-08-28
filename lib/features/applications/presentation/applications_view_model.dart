@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifications/notification_service.dart';
 import '../data/application_repository.dart';
 import '../domain/job_application.dart';
 
@@ -25,10 +26,14 @@ enum ApplicationDateFilter {
 }
 
 class ApplicationsViewModel extends ChangeNotifier {
-  ApplicationsViewModel(this._repository, {DateTime Function()? now})
-    : _now = now ?? DateTime.now;
+  ApplicationsViewModel(
+    this._repository, {
+    this.notificationService = const NoopNotificationService(),
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
 
   final ApplicationRepository _repository;
+  final NotificationService notificationService;
   final DateTime Function() _now;
   final List<JobApplication> _applications = [];
 
@@ -169,6 +174,7 @@ class ApplicationsViewModel extends ChangeNotifier {
   Future<void> add(JobApplication application) async {
     await _repository.add(application);
     _applications.insert(0, application);
+    await _syncInterviewReminder(application);
     selectedStatuses.clear();
     notifyListeners();
   }
@@ -177,6 +183,7 @@ class ApplicationsViewModel extends ChangeNotifier {
     await _repository.update(current, updated);
     final index = _applications.indexWhere((item) => item.id == current.id);
     if (index != -1) _applications[index] = updated;
+    await _syncInterviewReminder(updated);
     selectedStatuses.clear();
     notifyListeners();
   }
@@ -184,7 +191,30 @@ class ApplicationsViewModel extends ChangeNotifier {
   Future<void> delete(JobApplication application) async {
     await _repository.delete(application);
     _applications.removeWhere((item) => item.id == application.id);
+    await notificationService.cancelInterviewReminder(application.id);
     selectedStatuses.clear();
     notifyListeners();
+  }
+
+  Future<int> syncInterviewReminders() async {
+    for (final application in _applications) {
+      await _syncInterviewReminder(application);
+    }
+    return upcomingInterviews.length;
+  }
+
+  Future<void> _syncInterviewReminder(JobApplication application) async {
+    final interviewDate = application.interviewDate;
+    if (application.status != ApplicationStatus.interview ||
+        interviewDate == null) {
+      await notificationService.cancelInterviewReminder(application.id);
+      return;
+    }
+    await notificationService.scheduleInterviewReminder(
+      applicationId: application.id,
+      company: application.company,
+      role: application.role,
+      interviewDate: interviewDate,
+    );
   }
 }

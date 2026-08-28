@@ -24,6 +24,20 @@ void main() {
     expect(find.text('Flutter Developer'), findsOneWidget);
   });
 
+  testWidgets('notification button enables interview reminders', (
+    tester,
+  ) async {
+    await pumpJobTrail(tester);
+
+    await tester.tap(find.byTooltip('Enable interview reminders'));
+    await tester.pump();
+
+    expect(
+      find.text('Interview reminders enabled for 1 upcoming interview.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('search filters applications and can be cleared', (tester) async {
     tester.view.physicalSize = const Size(1080, 1920);
     tester.view.devicePixelRatio = 1;

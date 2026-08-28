@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/notifications/notification_service.dart';
 import '../data/application_repository.dart';
 import '../domain/job_application.dart';
 import 'application_details_page.dart';
@@ -8,9 +9,14 @@ import 'applications_view_model.dart';
 import 'upcoming_interview_card.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({required this.repository, super.key});
+  const DashboardPage({
+    required this.repository,
+    required this.notificationService,
+    super.key,
+  });
 
   final ApplicationRepository repository;
+  final NotificationService notificationService;
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
@@ -22,7 +28,10 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    viewModel = ApplicationsViewModel(widget.repository)..load();
+    viewModel = ApplicationsViewModel(
+      widget.repository,
+      notificationService: widget.notificationService,
+    )..load();
   }
 
   @override
@@ -56,6 +65,26 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  Future<void> requestNotificationPermission() async {
+    final granted = await widget.notificationService.requestPermission();
+    var reminderCount = 0;
+    if (granted) {
+      reminderCount = await viewModel.syncInterviewReminders();
+      await widget.notificationService.showTestNotification();
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          granted
+              ? 'Interview reminders enabled for $reminderCount upcoming '
+                    '${reminderCount == 1 ? 'interview' : 'interviews'}.'
+              : 'Notification permission was not granted.',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: viewModel,
@@ -83,7 +112,8 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           actions: [
             IconButton(
-              onPressed: () {},
+              tooltip: 'Enable interview reminders',
+              onPressed: requestNotificationPermission,
               icon: const Badge(
                 smallSize: 7,
                 child: Icon(Icons.notifications_none_rounded),
