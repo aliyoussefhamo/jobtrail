@@ -1,0 +1,20 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/jobtrail_icon.png
+  adaptive_icon_background: "#4F46E5"
+  adaptive_icon_foreground: assets/branding/jobtrail_foreground.png
+  adaptive_icon_foreground_inset: 20
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: assets/branding/jobtrail_icon.png
+    background_color: "#4F46E5"
+    theme_color: "#4F46E5"
+  windows:
+    generate: true
+    image_path: assets/branding/jobtrail_icon.png
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: assets/branding/jobtrail_icon.png

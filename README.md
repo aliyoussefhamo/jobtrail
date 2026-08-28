@@ -13,6 +13,7 @@ The project is being developed as a production-minded portfolio application, wit
 - Sort applications by newest, company, or status
 - Track application and optional interview dates
 - Schedule local reminders for upcoming interviews
+- Use custom cross-platform launcher icons and a branded native splash screen
 - Review application activity in a visual timeline
 - Add applications with company, role, location, status, and optional notes
 - View complete application details
@@ -123,7 +124,7 @@ flutter run
 - [x] Advanced filtering
 - [x] Interview reminders and notifications
 - [x] Improved test coverage
-- [ ] App branding and release assets
+- [x] App branding and release assets
 
 ## Current Project Status
 
