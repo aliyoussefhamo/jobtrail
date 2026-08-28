@@ -1,7 +1,9 @@
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
+import '../domain/application_event.dart';
 import '../domain/job_application.dart';
+import 'application_event_mapper.dart';
 import 'job_application_mapper.dart';
 
 class ApplicationDatabase {
@@ -9,6 +11,7 @@ class ApplicationDatabase {
 
   static final ApplicationDatabase instance = ApplicationDatabase._();
   static const applicationsTable = 'applications';
+  static const eventsTable = 'application_events';
 
   Database? _database;
 
@@ -19,7 +22,10 @@ class ApplicationDatabase {
     final databasePath = path.join(databasesPath, 'jobtrail.db');
     _database = await openDatabase(
       databasePath,
-      version: 3,
+      version: 4,
+      onConfigure: (database) async {
+        await database.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: _createDatabase,
       onUpgrade: _upgradeDatabase,
     );
@@ -41,10 +47,13 @@ class ApplicationDatabase {
       )
     ''');
 
+    await _createEventsTable(database);
+
     await _insertApplications(database, [
       ...sampleApplications,
       ...demoApplications,
     ]);
+    await _seedEventsForExistingApplications(database);
   }
 
   Future<void> _upgradeDatabase(
@@ -77,6 +86,76 @@ class ApplicationDatabase {
     if (oldVersion < 2) {
       await _insertApplications(database, demoApplications);
     }
+
+    if (oldVersion < 4) {
+      await _createEventsTable(database);
+      await _seedEventsForExistingApplications(database);
+    }
+  }
+
+  Future<void> _createEventsTable(Database database) async {
+    await database.execute('''
+      CREATE TABLE $eventsTable(
+        id TEXT PRIMARY KEY,
+        application_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        occurred_at INTEGER NOT NULL,
+        FOREIGN KEY(application_id)
+          REFERENCES $applicationsTable(id)
+          ON DELETE CASCADE
+      )
+    ''');
+    await database.execute(
+      'CREATE INDEX idx_events_application_date '
+      'ON $eventsTable(application_id, occurred_at)',
+    );
+  }
+
+  Future<void> _seedEventsForExistingApplications(Database database) async {
+    final rows = await database.query(applicationsTable);
+    final batch = database.batch();
+
+    for (final row in rows) {
+      final application = jobApplicationFromMap(row);
+      final events = <ApplicationEvent>[
+        ApplicationEvent(
+          id: 'seed-created-${application.id}',
+          applicationId: application.id,
+          type: ApplicationEventType.applicationCreated,
+          title: 'Application submitted',
+          occurredAt: application.appliedDate,
+        ),
+        if (application.interviewDate != null)
+          ApplicationEvent(
+            id: 'seed-interview-${application.id}',
+            applicationId: application.id,
+            type: ApplicationEventType.interviewScheduled,
+            title: 'Interview scheduled',
+            occurredAt: application.interviewDate!,
+          ),
+        if (application.status != ApplicationStatus.applied)
+          ApplicationEvent(
+            id: 'seed-status-${application.id}',
+            applicationId: application.id,
+            type: ApplicationEventType.statusChanged,
+            title: 'Status changed to ${application.status.label}',
+            occurredAt:
+                application.interviewDate ??
+                application.appliedDate.add(const Duration(days: 1)),
+          ),
+      ];
+
+      for (final event in events) {
+        batch.insert(
+          eventsTable,
+          event.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+    }
+
+    await batch.commit(noResult: true);
   }
 
   Future<void> _insertApplications(

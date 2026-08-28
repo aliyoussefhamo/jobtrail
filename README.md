@@ -11,6 +11,7 @@ The project is being developed as a production-minded portfolio application, wit
 - Search applications by company, role, location, or status
 - Sort applications by newest, company, or status
 - Track application and optional interview dates
+- Review application activity in a visual timeline
 - Add applications with company, role, location, status, and optional notes
 - View complete application details
 - Edit existing applications using a reusable form
@@ -114,6 +115,7 @@ flutter run
 - [x] Application search
 - [x] Application sorting
 - [x] Application and interview dates
+- [x] Application activity timeline
 - [ ] Advanced filtering
 - [ ] Interview reminders and notifications
 - [ ] Improved test coverage

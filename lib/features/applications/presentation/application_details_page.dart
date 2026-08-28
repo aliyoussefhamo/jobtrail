@@ -1,13 +1,40 @@
 import 'package:flutter/material.dart';
 
+import '../data/application_repository.dart';
+import '../domain/application_event.dart';
 import '../domain/job_application.dart';
-import 'application_details_result.dart';
 import 'application_form_sheet.dart';
+import 'application_timeline.dart';
 
-class ApplicationDetailsPage extends StatelessWidget {
-  const ApplicationDetailsPage({required this.application, super.key});
+class ApplicationDetailsPage extends StatefulWidget {
+  const ApplicationDetailsPage({
+    required this.application,
+    required this.repository,
+    required this.onUpdate,
+    required this.onDelete,
+    super.key,
+  });
 
   final JobApplication application;
+  final ApplicationRepository repository;
+  final Future<void> Function(JobApplication current, JobApplication updated)
+  onUpdate;
+  final Future<void> Function(JobApplication application) onDelete;
+
+  @override
+  State<ApplicationDetailsPage> createState() => _ApplicationDetailsPageState();
+}
+
+class _ApplicationDetailsPageState extends State<ApplicationDetailsPage> {
+  late JobApplication application;
+  late Future<List<ApplicationEvent>> eventsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    application = widget.application;
+    eventsFuture = widget.repository.getEvents(application.id);
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -33,6 +60,29 @@ class ApplicationDetailsPage extends StatelessWidget {
         const SizedBox(height: 24),
         _DetailsSection(application),
         const SizedBox(height: 20),
+        FutureBuilder<List<ApplicationEvent>>(
+          future: eventsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text('Could not load application timeline.'),
+                ),
+              );
+            }
+            return ApplicationTimeline(events: snapshot.data ?? const []);
+          },
+        ),
+        const SizedBox(height: 20),
         _NotesSection(notes: application.notes),
       ],
     ),
@@ -46,7 +96,12 @@ class ApplicationDetailsPage extends StatelessWidget {
       builder: (_) => ApplicationFormSheet(initialApplication: application),
     );
     if (updated != null && context.mounted) {
-      Navigator.pop(context, ApplicationUpdated(updated));
+      await widget.onUpdate(application, updated);
+      if (!context.mounted) return;
+      setState(() {
+        application = updated;
+        eventsFuture = widget.repository.getEvents(updated.id);
+      });
     }
   }
 
@@ -74,7 +129,8 @@ class ApplicationDetailsPage extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      Navigator.pop(context, const ApplicationDeleted());
+      await widget.onDelete(application);
+      if (context.mounted) Navigator.pop(context);
     }
   }
 }

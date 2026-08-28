@@ -105,6 +105,8 @@ void main() {
     expect(find.text('Interview tomorrow, 10:00'), findsOneWidget);
 
     await tester.scrollUntilVisible(find.text('No notes added yet.'), 200);
+    expect(find.text('Application timeline'), findsOneWidget);
+    expect(find.text('Application submitted'), findsOneWidget);
     expect(find.text('No notes added yet.'), findsOneWidget);
   });
 
@@ -127,6 +129,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Application details'), findsOneWidget);
+    expect(find.text('Senior Flutter Developer'), findsWidgets);
+
+    await tester.pageBack();
     await tester.pumpAndSettle();
 
     expect(find.text('Senior Flutter Developer'), findsOneWidget);
