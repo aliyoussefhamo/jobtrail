@@ -46,6 +46,14 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   List<JobApplication> get allApplications => List.unmodifiable(_applications);
 
+  String get greeting {
+    final hour = _now().hour;
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 18) return 'Good afternoon';
+    if (hour >= 18 && hour < 23) return 'Good evening';
+    return 'Good night';
+  }
+
   List<JobApplication> get upcomingInterviews {
     final now = _now();
     final today = DateTime(now.year, now.month, now.day);
@@ -153,6 +161,13 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   void setDateFilter(ApplicationDateFilter value) {
     selectedDateFilter = value;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    searchQuery = '';
+    selectedStatuses.clear();
+    selectedDateFilter = ApplicationDateFilter.anyTime;
     notifyListeners();
   }
 

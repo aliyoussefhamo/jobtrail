@@ -6,6 +6,22 @@ import 'package:jobtrail/features/applications/domain/job_application.dart';
 import 'package:jobtrail/features/applications/presentation/applications_view_model.dart';
 
 void main() {
+  for (final testCase in <(int, String)>[
+    (8, 'Good morning'),
+    (14, 'Good afternoon'),
+    (20, 'Good evening'),
+    (2, 'Good night'),
+  ]) {
+    test('greeting matches hour ${testCase.$1}', () {
+      final viewModel = ApplicationsViewModel(
+        InMemoryApplicationRepository(),
+        now: () => DateTime(2026, 8, 29, testCase.$1),
+      );
+
+      expect(viewModel.greeting, testCase.$2);
+    });
+  }
+
   test('sync schedules reminders only for upcoming interviews', () async {
     final notifications = RecordingNotificationService();
     final viewModel = ApplicationsViewModel(

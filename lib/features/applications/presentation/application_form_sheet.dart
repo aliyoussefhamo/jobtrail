@@ -71,7 +71,9 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
       20,
       0,
       20,
-      MediaQuery.viewInsetsOf(context).bottom + 24,
+      MediaQuery.viewInsetsOf(context).bottom +
+          MediaQuery.viewPaddingOf(context).bottom +
+          24,
     ),
     child: SingleChildScrollView(
       child: Form(

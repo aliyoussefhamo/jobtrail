@@ -28,6 +28,7 @@ class ApplicationDetailsPage extends StatefulWidget {
 class _ApplicationDetailsPageState extends State<ApplicationDetailsPage> {
   late JobApplication application;
   late Future<List<ApplicationEvent>> eventsFuture;
+  bool isUpdating = false;
 
   @override
   void initState() {
@@ -44,46 +45,57 @@ class _ApplicationDetailsPageState extends State<ApplicationDetailsPage> {
         IconButton(
           tooltip: 'Edit application',
           icon: const Icon(Icons.edit_outlined),
-          onPressed: () => _openEditSheet(context),
+          onPressed: isUpdating ? null : () => _openEditSheet(context),
         ),
         IconButton(
           tooltip: 'Delete application',
           icon: const Icon(Icons.delete_outline_rounded),
-          onPressed: () => _confirmDelete(context),
+          onPressed: isUpdating ? null : () => _confirmDelete(context),
         ),
       ],
     ),
-    body: ListView(
-      padding: const EdgeInsets.all(20),
+    body: Stack(
       children: [
-        _ApplicationHeader(application),
-        const SizedBox(height: 24),
-        _DetailsSection(application),
-        const SizedBox(height: 20),
-        FutureBuilder<List<ApplicationEvent>>(
-          future: eventsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              );
-            }
-            if (snapshot.hasError) {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text('Could not load application timeline.'),
-                ),
-              );
-            }
-            return ApplicationTimeline(events: snapshot.data ?? const []);
-          },
+        ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            _ApplicationHeader(application),
+            const SizedBox(height: 24),
+            _DetailsSection(application),
+            const SizedBox(height: 20),
+            FutureBuilder<List<ApplicationEvent>>(
+              future: eventsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('Could not load application timeline.'),
+                    ),
+                  );
+                }
+                return ApplicationTimeline(events: snapshot.data ?? const []);
+              },
+            ),
+            const SizedBox(height: 20),
+            _NotesSection(notes: application.notes),
+          ],
         ),
-        const SizedBox(height: 20),
-        _NotesSection(notes: application.notes),
+        if (isUpdating)
+          const Positioned.fill(
+            child: ColoredBox(
+              color: Colors.black26,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
       ],
     ),
   );
@@ -96,12 +108,25 @@ class _ApplicationDetailsPageState extends State<ApplicationDetailsPage> {
       builder: (_) => ApplicationFormSheet(initialApplication: application),
     );
     if (updated != null && context.mounted) {
-      await widget.onUpdate(application, updated);
-      if (!context.mounted) return;
-      setState(() {
-        application = updated;
-        eventsFuture = widget.repository.getEvents(updated.id);
-      });
+      setState(() => isUpdating = true);
+      try {
+        await widget.onUpdate(application, updated);
+        if (!context.mounted) return;
+        setState(() {
+          application = updated;
+          eventsFuture = widget.repository.getEvents(updated.id);
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Application updated.')));
+      } catch (_) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not update the application.')),
+        );
+      } finally {
+        if (mounted) setState(() => isUpdating = false);
+      }
     }
   }
 
@@ -129,8 +154,17 @@ class _ApplicationDetailsPageState extends State<ApplicationDetailsPage> {
     );
 
     if (confirmed == true && context.mounted) {
-      await widget.onDelete(application);
-      if (context.mounted) Navigator.pop(context);
+      setState(() => isUpdating = true);
+      try {
+        await widget.onDelete(application);
+        if (context.mounted) Navigator.pop(context);
+      } catch (_) {
+        if (!context.mounted) return;
+        setState(() => isUpdating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not delete the application.')),
+        );
+      }
     }
   }
 }

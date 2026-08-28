@@ -24,6 +24,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   late final ApplicationsViewModel viewModel;
   final searchController = TextEditingController();
+  bool isSaving = false;
 
   @override
   void initState() {
@@ -48,7 +49,21 @@ class _DashboardPageState extends State<DashboardPage> {
       showDragHandle: true,
       builder: (_) => const ApplicationFormSheet(),
     );
-    if (result != null) await viewModel.add(result);
+    if (result == null || !mounted) return;
+    setState(() => isSaving = true);
+    try {
+      await viewModel.add(result);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Application saved.')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not save the application.')),
+      );
+    } finally {
+      if (mounted) setState(() => isSaving = false);
+    }
   }
 
   Future<void> openApplicationDetails(JobApplication application) async {
@@ -121,192 +136,314 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ],
         ),
-        body: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.errorMessage != null
-            ? _LoadError(
-                message: viewModel.errorMessage!,
-                onRetry: viewModel.load,
-              )
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 104),
-                children: [
-                  Text(
-                    'Good morning, Ali',
-                    style: Theme.of(context).textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Your next opportunity is already on the trail.',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                  ),
-                  const SizedBox(height: 24),
-                  SummaryCard(
-                    total: viewModel.allApplications.length,
-                    interviews: viewModel.count(ApplicationStatus.interview),
-                    offers: viewModel.count(ApplicationStatus.offer),
-                  ),
-                  if (!viewModel.hasActiveFilters &&
-                      viewModel.upcomingInterviews.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    UpcomingInterviewCard(
-                      application: viewModel.upcomingInterviews.first,
-                      onTap: () => openApplicationDetails(
-                        viewModel.upcomingInterviews.first,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: searchController,
-                    onChanged: viewModel.setSearchQuery,
-                    decoration: InputDecoration(
-                      hintText: 'Search applications',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: viewModel.searchQuery.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Clear search',
-                              onPressed: () {
-                                searchController.clear();
-                                viewModel.setSearchQuery('');
-                              },
-                              icon: const Icon(Icons.close_rounded),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: viewModel.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : viewModel.errorMessage != null
+                  ? _LoadError(
+                      message: viewModel.errorMessage!,
+                      onRetry: viewModel.load,
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 104),
+                      children: [
+                        Text(
+                          viewModel.greeting,
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Your next opportunity is already on the trail.',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SummaryCard(
+                          total: viewModel.allApplications.length,
+                          interviews: viewModel.count(
+                            ApplicationStatus.interview,
+                          ),
+                          offers: viewModel.count(ApplicationStatus.offer),
+                        ),
+                        Column(
+                          children:
+                              !viewModel.hasActiveFilters &&
+                                  viewModel.upcomingInterviews.isNotEmpty
+                              ? [
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 20),
+                                    child: UpcomingInterviewCard(
+                                      application:
+                                          viewModel.upcomingInterviews.first,
+                                      onTap: () => openApplicationDetails(
+                                        viewModel.upcomingInterviews.first,
+                                      ),
+                                    ),
+                                  ),
+                                ]
+                              : const [],
+                        ),
+                        const SizedBox(height: 24),
+                        TextField(
+                          controller: searchController,
+                          onChanged: viewModel.setSearchQuery,
+                          decoration: InputDecoration(
+                            hintText: 'Search applications',
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            suffixIcon: viewModel.searchQuery.isEmpty
+                                ? null
+                                : IconButton(
+                                    tooltip: 'Clear search',
+                                    onPressed: () {
+                                      searchController.clear();
+                                      viewModel.setSearchQuery('');
+                                    },
+                                    icon: const Icon(Icons.close_rounded),
+                                  ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
                             ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 40,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: ApplicationStatus.values.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) {
-                        final status = ApplicationStatus.values[i];
-                        return FilterChip(
-                          selected: viewModel.selectedStatuses.contains(status),
-                          avatar: Icon(status.icon, size: 16),
-                          label: Text(status.label),
-                          onSelected: (_) => viewModel.toggleFilter(status),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: PopupMenuButton<ApplicationDateFilter>(
-                      tooltip: 'Filter by application date',
-                      initialValue: viewModel.selectedDateFilter,
-                      onSelected: viewModel.setDateFilter,
-                      itemBuilder: (_) => ApplicationDateFilter.values
-                          .map(
-                            (filter) => PopupMenuItem<ApplicationDateFilter>(
-                              value: filter,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 40,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: ApplicationStatus.values.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 8),
+                            itemBuilder: (_, i) {
+                              final status = ApplicationStatus.values[i];
+                              return FilterChip(
+                                selected: viewModel.selectedStatuses.contains(
+                                  status,
+                                ),
+                                avatar: Icon(status.icon, size: 16),
+                                label: Text(status.label),
+                                onSelected: (_) =>
+                                    viewModel.toggleFilter(status),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: PopupMenuButton<ApplicationDateFilter>(
+                            tooltip: 'Filter by application date',
+                            initialValue: viewModel.selectedDateFilter,
+                            onSelected: viewModel.setDateFilter,
+                            itemBuilder: (_) => ApplicationDateFilter.values
+                                .map(
+                                  (filter) =>
+                                      PopupMenuItem<ApplicationDateFilter>(
+                                        value: filter,
+                                        child: Row(
+                                          children: [
+                                            if (filter ==
+                                                viewModel.selectedDateFilter)
+                                              const Icon(
+                                                Icons.check_rounded,
+                                                size: 18,
+                                              )
+                                            else
+                                              const SizedBox(width: 18),
+                                            const SizedBox(width: 8),
+                                            Text(filter.label),
+                                          ],
+                                        ),
+                                      ),
+                                )
+                                .toList(),
+                            child: Chip(
+                              avatar: const Icon(
+                                Icons.calendar_today_outlined,
+                                size: 16,
+                              ),
+                              label: Text(viewModel.selectedDateFilter.label),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        Row(
+                          children: [
+                            Text(
+                              'Recent applications',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const Spacer(),
+                            PopupMenuButton<ApplicationSort>(
+                              tooltip: 'Sort applications',
+                              initialValue: viewModel.selectedSort,
+                              onSelected: viewModel.setSort,
+                              itemBuilder: (_) => ApplicationSort.values
+                                  .map(
+                                    (sort) => PopupMenuItem<ApplicationSort>(
+                                      value: sort,
+                                      child: Row(
+                                        children: [
+                                          if (sort == viewModel.selectedSort)
+                                            const Icon(
+                                              Icons.check_rounded,
+                                              size: 18,
+                                            )
+                                          else
+                                            const SizedBox(width: 18),
+                                          const SizedBox(width: 8),
+                                          Text(sort.label),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                               child: Row(
                                 children: [
-                                  if (filter == viewModel.selectedDateFilter)
-                                    const Icon(Icons.check_rounded, size: 18)
-                                  else
-                                    const SizedBox(width: 18),
-                                  const SizedBox(width: 8),
-                                  Text(filter.label),
+                                  const Icon(Icons.sort_rounded, size: 19),
+                                  const SizedBox(width: 5),
+                                  Text(viewModel.selectedSort.label),
                                 ],
                               ),
                             ),
-                          )
-                          .toList(),
-                      child: Chip(
-                        avatar: const Icon(
-                          Icons.calendar_today_outlined,
-                          size: 16,
-                        ),
-                        label: Text(viewModel.selectedDateFilter.label),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    children: [
-                      Text(
-                        'Recent applications',
-                        style: Theme.of(context).textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const Spacer(),
-                      PopupMenuButton<ApplicationSort>(
-                        tooltip: 'Sort applications',
-                        initialValue: viewModel.selectedSort,
-                        onSelected: viewModel.setSort,
-                        itemBuilder: (_) => ApplicationSort.values
-                            .map(
-                              (sort) => PopupMenuItem<ApplicationSort>(
-                                value: sort,
-                                child: Row(
-                                  children: [
-                                    if (sort == viewModel.selectedSort)
-                                      const Icon(Icons.check_rounded, size: 18)
-                                    else
-                                      const SizedBox(width: 18),
-                                    const SizedBox(width: 8),
-                                    Text(sort.label),
-                                  ],
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.sort_rounded, size: 19),
-                            const SizedBox(width: 5),
-                            Text(viewModel.selectedSort.label),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (items.isEmpty)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(28),
-                        child: Center(
-                          child: Text(
-                            viewModel.searchQuery.isEmpty
-                                ? 'No applications in this stage yet.'
-                                : 'No applications match your search.',
+                        const SizedBox(height: 12),
+                        if (items.isEmpty)
+                          _ApplicationsEmptyState(
+                            hasApplications:
+                                viewModel.allApplications.isNotEmpty,
+                            hasActiveFilters: viewModel.hasActiveFilters,
+                            onAdd: openAddApplication,
+                            onClearFilters: () {
+                              searchController.clear();
+                              viewModel.clearFilters();
+                            },
+                          )
+                        else
+                          ...items.map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: JobCard(
+                                item,
+                                onTap: () => openApplicationDetails(item),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    )
-                  else
-                    ...items.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: JobCard(
-                          item,
-                          onTap: () => openApplicationDetails(item),
-                        ),
-                      ),
+                      ],
                     ),
-                ],
-              ),
+            ),
+            if (isSaving) const _OperationProgress(label: 'Saving application'),
+          ],
+        ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: openAddApplication,
+          onPressed: isSaving ? null : openAddApplication,
           icon: const Icon(Icons.add_rounded),
           label: const Text('Add application'),
         ),
       );
     },
   );
+}
+
+class _OperationProgress extends StatelessWidget {
+  const _OperationProgress({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Positioned.fill(
+    child: ColoredBox(
+      color: Colors.black26,
+      child: Center(
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox.square(
+                  dimension: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+                const SizedBox(width: 14),
+                Text(label),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _ApplicationsEmptyState extends StatelessWidget {
+  const _ApplicationsEmptyState({
+    required this.hasApplications,
+    required this.hasActiveFilters,
+    required this.onAdd,
+    required this.onClearFilters,
+  });
+
+  final bool hasApplications;
+  final bool hasActiveFilters;
+  final VoidCallback onAdd;
+  final VoidCallback onClearFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    final isFiltered = hasApplications && hasActiveFilters;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          children: [
+            Icon(
+              isFiltered
+                  ? Icons.search_off_rounded
+                  : Icons.work_outline_rounded,
+              size: 44,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isFiltered ? 'No matching applications' : 'Start your job trail',
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isFiltered
+                  ? 'Try clearing your search or filters.'
+                  : 'Add your first application to track its progress.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            if (isFiltered)
+              OutlinedButton.icon(
+                onPressed: onClearFilters,
+                icon: const Icon(Icons.filter_alt_off_rounded),
+                label: const Text('Clear filters'),
+              )
+            else
+              FilledButton.icon(
+                onPressed: onAdd,
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Add first application'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _LoadError extends StatelessWidget {
