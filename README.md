@@ -6,6 +6,29 @@ JobTrail is a cross-platform Flutter application for organizing and tracking job
 
 The project is being developed as a production-minded portfolio application, with a focus on clean architecture, maintainable code, responsive UI, and automated testing.
 
+## Screenshots
+
+<table>
+  <tr>
+    <th>Dashboard</th>
+    <th>Search & filters</th>
+    <th>Add application</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/dashboard.jpg" alt="JobTrail dashboard" width="240"></td>
+    <td><img src="docs/screenshots/filters.jpg" alt="JobTrail search and filters" width="240"></td>
+    <td><img src="docs/screenshots/add-application.jpg" alt="Add a job application" width="240"></td>
+  </tr>
+  <tr>
+    <th colspan="2">Application details & timeline</th>
+    <th>Splash screen</th>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="docs/screenshots/application-details.jpg" alt="Application details and activity timeline" width="240"></td>
+    <td><img src="docs/screenshots/splash.jpg" alt="JobTrail splash screen" width="240"></td>
+  </tr>
+</table>
+
 ## Features
 
 - View a dashboard with application, interview, and offer statistics
