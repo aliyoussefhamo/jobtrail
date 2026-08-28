@@ -13,14 +13,29 @@ enum ApplicationSort {
   final String label;
 }
 
+enum ApplicationDateFilter {
+  anyTime('Any time', null),
+  last7Days('Last 7 days', 7),
+  last30Days('Last 30 days', 30);
+
+  const ApplicationDateFilter(this.label, this.days);
+
+  final String label;
+  final int? days;
+}
+
 class ApplicationsViewModel extends ChangeNotifier {
-  ApplicationsViewModel(this._repository);
+  ApplicationsViewModel(this._repository, {DateTime Function()? now})
+    : _now = now ?? DateTime.now;
+
   final ApplicationRepository _repository;
+  final DateTime Function() _now;
   final List<JobApplication> _applications = [];
 
-  ApplicationStatus? selectedStatus;
+  final Set<ApplicationStatus> selectedStatuses = {};
   String searchQuery = '';
   ApplicationSort selectedSort = ApplicationSort.newest;
+  ApplicationDateFilter selectedDateFilter = ApplicationDateFilter.anyTime;
   bool isLoading = true;
   String? errorMessage;
 
@@ -30,14 +45,15 @@ class ApplicationsViewModel extends ChangeNotifier {
     final normalizedQuery = searchQuery.trim().toLowerCase();
     final results = allApplications.where((item) {
       final matchesStatus =
-          selectedStatus == null || item.status == selectedStatus;
+          selectedStatuses.isEmpty || selectedStatuses.contains(item.status);
+      final matchesDate = _matchesDateFilter(item);
       final matchesSearch =
           normalizedQuery.isEmpty ||
           item.company.toLowerCase().contains(normalizedQuery) ||
           item.role.toLowerCase().contains(normalizedQuery) ||
           item.location.toLowerCase().contains(normalizedQuery) ||
           item.status.label.toLowerCase().contains(normalizedQuery);
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesDate && matchesSearch;
     }).toList();
 
     switch (selectedSort) {
@@ -86,7 +102,11 @@ class ApplicationsViewModel extends ChangeNotifier {
   }
 
   void toggleFilter(ApplicationStatus status) {
-    selectedStatus = selectedStatus == status ? null : status;
+    if (selectedStatuses.contains(status)) {
+      selectedStatuses.remove(status);
+    } else {
+      selectedStatuses.add(status);
+    }
     notifyListeners();
   }
 
@@ -100,10 +120,30 @@ class ApplicationsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDateFilter(ApplicationDateFilter value) {
+    selectedDateFilter = value;
+    notifyListeners();
+  }
+
+  bool _matchesDateFilter(JobApplication application) {
+    final days = selectedDateFilter.days;
+    if (days == null) return true;
+
+    final now = _now();
+    final today = DateTime(now.year, now.month, now.day);
+    final earliestDate = today.subtract(Duration(days: days - 1));
+    final appliedDate = DateTime(
+      application.appliedDate.year,
+      application.appliedDate.month,
+      application.appliedDate.day,
+    );
+    return !appliedDate.isBefore(earliestDate) && !appliedDate.isAfter(today);
+  }
+
   Future<void> add(JobApplication application) async {
     await _repository.add(application);
     _applications.insert(0, application);
-    selectedStatus = null;
+    selectedStatuses.clear();
     notifyListeners();
   }
 
@@ -111,14 +151,14 @@ class ApplicationsViewModel extends ChangeNotifier {
     await _repository.update(current, updated);
     final index = _applications.indexWhere((item) => item.id == current.id);
     if (index != -1) _applications[index] = updated;
-    selectedStatus = null;
+    selectedStatuses.clear();
     notifyListeners();
   }
 
   Future<void> delete(JobApplication application) async {
     await _repository.delete(application);
     _applications.removeWhere((item) => item.id == application.id);
-    selectedStatus = null;
+    selectedStatuses.clear();
     notifyListeners();
   }
 }

@@ -151,7 +151,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       itemBuilder: (_, i) {
                         final status = ApplicationStatus.values[i];
                         return FilterChip(
-                          selected: viewModel.selectedStatus == status,
+                          selected: viewModel.selectedStatuses.contains(status),
                           avatar: Icon(status.icon, size: 16),
                           label: Text(status.label),
                           onSelected: (_) => viewModel.toggleFilter(status),
@@ -159,7 +159,40 @@ class _DashboardPageState extends State<DashboardPage> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 14),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: PopupMenuButton<ApplicationDateFilter>(
+                      tooltip: 'Filter by application date',
+                      initialValue: viewModel.selectedDateFilter,
+                      onSelected: viewModel.setDateFilter,
+                      itemBuilder: (_) => ApplicationDateFilter.values
+                          .map(
+                            (filter) => PopupMenuItem<ApplicationDateFilter>(
+                              value: filter,
+                              child: Row(
+                                children: [
+                                  if (filter == viewModel.selectedDateFilter)
+                                    const Icon(Icons.check_rounded, size: 18)
+                                  else
+                                    const SizedBox(width: 18),
+                                  const SizedBox(width: 8),
+                                  Text(filter.label),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      child: Chip(
+                        avatar: const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 16,
+                        ),
+                        label: Text(viewModel.selectedDateFilter.label),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
                   Row(
                     children: [
                       Text(

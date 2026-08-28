@@ -7,7 +7,8 @@ The project is being developed as a production-minded portfolio application, wit
 ## Features
 
 - View a dashboard with application, interview, and offer statistics
-- Filter applications by status
+- Filter applications by one or more statuses
+- Filter applications by application date
 - Search applications by company, role, location, or status
 - Sort applications by newest, company, or status
 - Track application and optional interview dates
@@ -116,14 +117,14 @@ flutter run
 - [x] Application sorting
 - [x] Application and interview dates
 - [x] Application activity timeline
-- [ ] Advanced filtering
+- [x] Advanced filtering
 - [ ] Interview reminders and notifications
 - [ ] Improved test coverage
 - [ ] App branding and release assets
 
 ## Current Project Status
 
-JobTrail is under active development. Application data is stored locally with SQLite and remains available across app restarts. A status timeline and upcoming interview experience are the next planned features.
+JobTrail is under active development. Application data is stored locally with SQLite and remains available across app restarts. Multi-status and application-date filters can be combined with search, and interview reminders are the next planned feature.
 
 ## Author
 
