@@ -19,7 +19,9 @@ class JobApplication {
     required this.role,
     required this.location,
     required this.status,
+    required this.appliedDate,
     required this.updatedLabel,
+    this.interviewDate,
     this.notes = '',
   });
 
@@ -28,6 +30,8 @@ class JobApplication {
   final String role;
   final String location;
   final ApplicationStatus status;
+  final DateTime appliedDate;
+  final DateTime? interviewDate;
   final String updatedLabel;
   final String notes;
 

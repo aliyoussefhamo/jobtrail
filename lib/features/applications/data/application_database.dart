@@ -19,7 +19,7 @@ class ApplicationDatabase {
     final databasePath = path.join(databasesPath, 'jobtrail.db');
     _database = await openDatabase(
       databasePath,
-      version: 2,
+      version: 3,
       onCreate: _createDatabase,
       onUpgrade: _upgradeDatabase,
     );
@@ -34,6 +34,8 @@ class ApplicationDatabase {
         role TEXT NOT NULL,
         location TEXT NOT NULL,
         status TEXT NOT NULL,
+        applied_date INTEGER NOT NULL,
+        interview_date INTEGER,
         updated_label TEXT NOT NULL,
         notes TEXT NOT NULL
       )
@@ -50,6 +52,28 @@ class ApplicationDatabase {
     int oldVersion,
     int newVersion,
   ) async {
+    if (oldVersion < 3) {
+      await database.execute(
+        'ALTER TABLE $applicationsTable '
+        'ADD COLUMN applied_date INTEGER NOT NULL DEFAULT 0',
+      );
+      await database.execute(
+        'ALTER TABLE $applicationsTable ADD COLUMN interview_date INTEGER',
+      );
+
+      final migrationDate = DateTime(2026, 8, 28).millisecondsSinceEpoch;
+      final interviewDate = DateTime(2026, 9, 1).millisecondsSinceEpoch;
+      await database.update(applicationsTable, {
+        'applied_date': migrationDate,
+      }, where: 'applied_date = 0');
+      await database.update(
+        applicationsTable,
+        {'interview_date': interviewDate},
+        where: 'status = ?',
+        whereArgs: [ApplicationStatus.interview.name],
+      );
+    }
+
     if (oldVersion < 2) {
       await _insertApplications(database, demoApplications);
     }
@@ -71,13 +95,15 @@ class ApplicationDatabase {
   }
 }
 
-const sampleApplications = [
+final sampleApplications = [
   JobApplication(
     id: 'nova-labs-flutter-developer',
     company: 'Nova Labs',
     role: 'Flutter Developer',
     location: 'Berlin - Remote',
     status: ApplicationStatus.interview,
+    appliedDate: DateTime(2026, 8, 27),
+    interviewDate: DateTime(2026, 9, 1),
     updatedLabel: 'Interview tomorrow, 10:00',
   ),
   JobApplication(
@@ -86,6 +112,7 @@ const sampleApplications = [
     role: 'Mobile Software Engineer',
     location: 'Frankfurt - Hybrid',
     status: ApplicationStatus.applied,
+    appliedDate: DateTime(2026, 8, 22),
     updatedLabel: 'Applied 2 days ago',
   ),
   JobApplication(
@@ -94,6 +121,7 @@ const sampleApplications = [
     role: 'iOS & Flutter Developer',
     location: 'Hamburg - Remote',
     status: ApplicationStatus.offer,
+    appliedDate: DateTime(2026, 8, 15),
     updatedLabel: 'Offer received today',
   ),
   JobApplication(
@@ -102,17 +130,19 @@ const sampleApplications = [
     role: 'Junior Flutter Engineer',
     location: 'Munich - Onsite',
     status: ApplicationStatus.rejected,
+    appliedDate: DateTime(2026, 8, 10),
     updatedLabel: 'Updated yesterday',
   ),
 ];
 
-const demoApplications = [
+final demoApplications = [
   JobApplication(
     id: 'demo-google-flutter-developer',
     company: 'Google',
     role: 'Flutter Developer',
     location: 'Munich - Hybrid',
     status: ApplicationStatus.applied,
+    appliedDate: DateTime(2026, 8, 25),
     updatedLabel: 'Applied recently',
     notes: 'Applied through LinkedIn',
   ),
@@ -122,6 +152,8 @@ const demoApplications = [
     role: 'Mobile Engineer',
     location: 'Berlin - Onsite',
     status: ApplicationStatus.interview,
+    appliedDate: DateTime(2026, 8, 18),
+    interviewDate: DateTime(2026, 9, 3),
     updatedLabel: 'Interview scheduled',
     notes: 'Technical interview next Monday',
   ),
@@ -131,6 +163,7 @@ const demoApplications = [
     role: 'iOS Developer',
     location: 'Berlin - Hybrid',
     status: ApplicationStatus.rejected,
+    appliedDate: DateTime(2026, 8, 12),
     updatedLabel: 'Updated recently',
     notes: 'Rejected after first interview',
   ),
@@ -140,6 +173,7 @@ const demoApplications = [
     role: 'Flutter Engineer',
     location: 'Munich - Onsite',
     status: ApplicationStatus.offer,
+    appliedDate: DateTime(2026, 8, 5),
     updatedLabel: 'Offer received',
     notes: 'Reviewing salary and benefits',
   ),
@@ -149,6 +183,8 @@ const demoApplications = [
     role: 'Senior Mobile Developer',
     location: 'Berlin - Remote',
     status: ApplicationStatus.interview,
+    appliedDate: DateTime(2026, 8, 21),
+    interviewDate: DateTime(2026, 9, 5),
     updatedLabel: 'Interview scheduled',
     notes: 'Prepare architecture questions',
   ),
@@ -158,6 +194,7 @@ const demoApplications = [
     role: 'Software Engineer',
     location: 'Walldorf - Hybrid',
     status: ApplicationStatus.applied,
+    appliedDate: DateTime(2026, 8, 26),
     updatedLabel: 'Applied recently',
     notes: 'Waiting for recruiter response',
   ),
@@ -167,6 +204,7 @@ const demoApplications = [
     role: 'Mobile App Developer',
     location: 'Herzogenaurach - Hybrid',
     status: ApplicationStatus.offer,
+    appliedDate: DateTime(2026, 8, 8),
     updatedLabel: 'Offer received',
     notes: 'Offer deadline next Friday',
   ),
@@ -176,6 +214,7 @@ const demoApplications = [
     role: 'Junior Flutter Developer',
     location: 'Frankfurt - Hybrid',
     status: ApplicationStatus.applied,
+    appliedDate: DateTime(2026, 8, 27),
     updatedLabel: 'Applied recently',
     notes: 'Application submitted through website',
   ),

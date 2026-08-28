@@ -157,35 +157,52 @@ class _DetailsSection extends StatelessWidget {
   final JobApplication application;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Column(
-      children: [
-        _DetailTile(
-          icon: Icons.business_rounded,
-          label: 'Company',
-          value: application.company,
-        ),
-        const Divider(height: 1),
-        _DetailTile(
-          icon: Icons.work_outline_rounded,
-          label: 'Job title',
-          value: application.role,
-        ),
-        const Divider(height: 1),
-        _DetailTile(
-          icon: Icons.location_on_outlined,
-          label: 'Location',
-          value: application.location,
-        ),
-        const Divider(height: 1),
-        _DetailTile(
-          icon: Icons.schedule_rounded,
-          label: 'Last update',
-          value: application.updatedLabel,
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final dateFormatter = MaterialLocalizations.of(context);
+    return Card(
+      child: Column(
+        children: [
+          _DetailTile(
+            icon: Icons.business_rounded,
+            label: 'Company',
+            value: application.company,
+          ),
+          const Divider(height: 1),
+          _DetailTile(
+            icon: Icons.work_outline_rounded,
+            label: 'Job title',
+            value: application.role,
+          ),
+          const Divider(height: 1),
+          _DetailTile(
+            icon: Icons.location_on_outlined,
+            label: 'Location',
+            value: application.location,
+          ),
+          const Divider(height: 1),
+          _DetailTile(
+            icon: Icons.schedule_rounded,
+            label: 'Last update',
+            value: application.updatedLabel,
+          ),
+          const Divider(height: 1),
+          _DetailTile(
+            icon: Icons.calendar_today_outlined,
+            label: 'Application date',
+            value: dateFormatter.formatMediumDate(application.appliedDate),
+          ),
+          if (application.interviewDate != null) ...[
+            const Divider(height: 1),
+            _DetailTile(
+              icon: Icons.event_available_outlined,
+              label: 'Interview date',
+              value: dateFormatter.formatMediumDate(application.interviewDate!),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _DetailTile extends StatelessWidget {

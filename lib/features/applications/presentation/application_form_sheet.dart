@@ -18,6 +18,8 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
   late final TextEditingController locationController;
   late final TextEditingController notesController;
   late ApplicationStatus chosenStatus;
+  late DateTime appliedDate;
+  DateTime? interviewDate;
 
   bool get isEditing => widget.initialApplication != null;
 
@@ -30,6 +32,8 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
     locationController = TextEditingController(text: application?.location);
     notesController = TextEditingController(text: application?.notes);
     chosenStatus = application?.status ?? ApplicationStatus.applied;
+    appliedDate = application?.appliedDate ?? DateTime.now();
+    interviewDate = application?.interviewDate;
   }
 
   @override
@@ -53,6 +57,8 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
         role: roleController.text.trim(),
         location: locationController.text.trim(),
         status: chosenStatus,
+        appliedDate: appliedDate,
+        interviewDate: interviewDate,
         updatedLabel: isEditing ? 'Updated just now' : 'Added just now',
         notes: notesController.text.trim(),
       ),
@@ -99,6 +105,23 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
               validator: (value) => value == null || value.trim().isEmpty
                   ? 'Please enter a job title'
                   : null,
+            ),
+            const SizedBox(height: 14),
+            _DateField(
+              label: 'Application date',
+              icon: Icons.calendar_today_outlined,
+              date: appliedDate,
+              onTap: pickAppliedDate,
+            ),
+            const SizedBox(height: 14),
+            _DateField(
+              label: 'Interview date (optional)',
+              icon: Icons.event_available_outlined,
+              date: interviewDate,
+              onTap: pickInterviewDate,
+              onClear: interviewDate == null
+                  ? null
+                  : () => setState(() => interviewDate = null),
             ),
             const SizedBox(height: 14),
             TextFormField(
@@ -150,6 +173,67 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
             ),
           ],
         ),
+      ),
+    ),
+  );
+
+  Future<void> pickAppliedDate() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: appliedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+    );
+    if (selected != null) setState(() => appliedDate = selected);
+  }
+
+  Future<void> pickInterviewDate() async {
+    final today = DateTime.now();
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: interviewDate ?? today,
+      firstDate: DateTime(2000),
+      lastDate: today.add(const Duration(days: 365 * 5)),
+    );
+    if (selected != null) setState(() => interviewDate = selected);
+  }
+}
+
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.label,
+    required this.icon,
+    required this.date,
+    required this.onTap,
+    this.onClear,
+  });
+
+  final String label;
+  final IconData icon;
+  final DateTime? date;
+  final VoidCallback onTap;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(12),
+    child: InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        suffixIcon: onClear == null
+            ? const Icon(Icons.arrow_drop_down_rounded)
+            : IconButton(
+                tooltip: 'Clear interview date',
+                onPressed: onClear,
+                icon: const Icon(Icons.close_rounded),
+              ),
+      ),
+      child: Text(
+        date == null
+            ? 'Not scheduled'
+            : MaterialLocalizations.of(context).formatMediumDate(date!),
       ),
     ),
   );

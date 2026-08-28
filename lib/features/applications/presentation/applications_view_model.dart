@@ -42,7 +42,9 @@ class ApplicationsViewModel extends ChangeNotifier {
 
     switch (selectedSort) {
       case ApplicationSort.newest:
-        break;
+        results.sort(
+          (first, second) => second.appliedDate.compareTo(first.appliedDate),
+        );
       case ApplicationSort.company:
         results.sort(
           (first, second) => first.company.toLowerCase().compareTo(

@@ -89,6 +89,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Add a new application'), findsOneWidget);
+    expect(find.text('Application date'), findsOneWidget);
+    expect(find.text('Interview date (optional)'), findsOneWidget);
     expect(find.text('Notes (optional)'), findsOneWidget);
   });
 
