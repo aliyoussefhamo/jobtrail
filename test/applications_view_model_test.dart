@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jobtrail/core/notifications/notification_service.dart';
 import 'package:jobtrail/features/applications/data/application_repository.dart';
+import 'package:jobtrail/features/applications/domain/application_event.dart';
 import 'package:jobtrail/features/applications/domain/job_application.dart';
 import 'package:jobtrail/features/applications/presentation/applications_view_model.dart';
 
@@ -28,6 +29,57 @@ void main() {
         'orbit-commerce-junior-flutter',
       ]),
     );
+  });
+
+  test('changing an interview to offer cancels its reminder', () async {
+    final repository = InMemoryApplicationRepository();
+    final notifications = RecordingNotificationService();
+    final viewModel = ApplicationsViewModel(
+      repository,
+      notificationService: notifications,
+    );
+    await viewModel.load();
+    final nova = viewModel.allApplications.first;
+    final offer = JobApplication(
+      id: nova.id,
+      company: nova.company,
+      role: nova.role,
+      location: nova.location,
+      status: ApplicationStatus.offer,
+      appliedDate: nova.appliedDate,
+      interviewDate: nova.interviewDate,
+      updatedLabel: 'Offer received just now',
+      notes: nova.notes,
+    );
+
+    await viewModel.update(nova, offer);
+
+    expect(notifications.cancelledApplicationIds, contains(nova.id));
+  });
+
+  test('deleting an application cancels its reminder', () async {
+    final repository = InMemoryApplicationRepository();
+    final notifications = RecordingNotificationService();
+    final viewModel = ApplicationsViewModel(
+      repository,
+      notificationService: notifications,
+    );
+    await viewModel.load();
+    final application = viewModel.allApplications.first;
+
+    await viewModel.delete(application);
+
+    expect(notifications.cancelledApplicationIds, contains(application.id));
+  });
+
+  test('load exposes an error when the repository fails', () async {
+    final viewModel = ApplicationsViewModel(FailingApplicationRepository());
+
+    await viewModel.load();
+
+    expect(viewModel.isLoading, isFalse);
+    expect(viewModel.errorMessage, 'Could not load applications.');
+    expect(viewModel.allApplications, isEmpty);
   });
 
   test(
@@ -121,4 +173,25 @@ class RecordingNotificationService implements NotificationService {
   Future<void> cancelInterviewReminder(String applicationId) async {
     cancelledApplicationIds.add(applicationId);
   }
+}
+
+class FailingApplicationRepository implements ApplicationRepository {
+  @override
+  Future<List<JobApplication>> getAll() => throw Exception('Database failed');
+
+  @override
+  Future<List<ApplicationEvent>> getEvents(String applicationId) =>
+      throw Exception('Database failed');
+
+  @override
+  Future<void> add(JobApplication application) =>
+      throw Exception('Database failed');
+
+  @override
+  Future<void> update(JobApplication current, JobApplication updated) =>
+      throw Exception('Database failed');
+
+  @override
+  Future<void> delete(JobApplication application) =>
+      throw Exception('Database failed');
 }

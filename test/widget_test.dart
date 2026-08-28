@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jobtrail/app/jobtrail_app.dart';
+import 'package:jobtrail/core/notifications/notification_service.dart';
 import 'package:jobtrail/features/applications/data/application_repository.dart';
 
-Future<void> pumpJobTrail(WidgetTester tester) async {
+Future<void> pumpJobTrail(
+  WidgetTester tester, {
+  NotificationService notificationService = const NoopNotificationService(),
+}) async {
   tester.view.physicalSize = const Size(1080, 1920);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(
-    JobTrailApp(repository: InMemoryApplicationRepository()),
+    JobTrailApp(
+      repository: InMemoryApplicationRepository(),
+      notificationService: notificationService,
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -34,6 +41,21 @@ void main() {
 
     expect(
       find.text('Interview reminders enabled for 1 upcoming interview.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('notification denial is explained to the user', (tester) async {
+    await pumpJobTrail(
+      tester,
+      notificationService: const DeniedNotificationService(),
+    );
+
+    await tester.tap(find.byTooltip('Enable interview reminders'));
+    await tester.pump();
+
+    expect(
+      find.text('Notification permission was not granted.'),
       findsOneWidget,
     );
   });
@@ -213,4 +235,28 @@ void main() {
 
     expect(find.text('Flutter Developer'), findsNothing);
   });
+}
+
+class DeniedNotificationService implements NotificationService {
+  const DeniedNotificationService();
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<bool> requestPermission() async => false;
+
+  @override
+  Future<void> showTestNotification() async {}
+
+  @override
+  Future<void> scheduleInterviewReminder({
+    required String applicationId,
+    required String company,
+    required String role,
+    required DateTime interviewDate,
+  }) async {}
+
+  @override
+  Future<void> cancelInterviewReminder(String applicationId) async {}
 }

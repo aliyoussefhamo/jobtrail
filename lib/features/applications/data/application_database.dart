@@ -7,29 +7,43 @@ import 'application_event_mapper.dart';
 import 'job_application_mapper.dart';
 
 class ApplicationDatabase {
-  ApplicationDatabase._();
+  ApplicationDatabase._({this._factory, this._databasePath});
+
+  ApplicationDatabase.forTesting({
+    required DatabaseFactory factory,
+    required String databasePath,
+  }) : this._(factory: factory, databasePath: databasePath);
 
   static final ApplicationDatabase instance = ApplicationDatabase._();
   static const applicationsTable = 'applications';
   static const eventsTable = 'application_events';
 
+  final DatabaseFactory? _factory;
+  final String? _databasePath;
   Database? _database;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    final databasesPath = await getDatabasesPath();
-    final databasePath = path.join(databasesPath, 'jobtrail.db');
-    _database = await openDatabase(
+    final databasePath =
+        _databasePath ?? path.join(await getDatabasesPath(), 'jobtrail.db');
+    _database = await (_factory ?? databaseFactory).openDatabase(
       databasePath,
-      version: 4,
-      onConfigure: (database) async {
-        await database.execute('PRAGMA foreign_keys = ON');
-      },
-      onCreate: _createDatabase,
-      onUpgrade: _upgradeDatabase,
+      options: OpenDatabaseOptions(
+        version: 4,
+        onConfigure: (database) async {
+          await database.execute('PRAGMA foreign_keys = ON');
+        },
+        onCreate: _createDatabase,
+        onUpgrade: _upgradeDatabase,
+      ),
     );
     return _database!;
+  }
+
+  Future<void> close() async {
+    await _database?.close();
+    _database = null;
   }
 
   Future<void> _createDatabase(Database database, int version) async {

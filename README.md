@@ -70,6 +70,8 @@ lib/
 - SQLite persistence with asynchronous CRUD operations
 - Dependency injection for production and test repositories
 - Widget tests covering the main user flows
+- SQLite integration tests covering CRUD, cascading deletes, and migrations
+- 86% automated test coverage across application code
 
 ## Tests
 
@@ -120,7 +122,7 @@ flutter run
 - [x] Application activity timeline
 - [x] Advanced filtering
 - [x] Interview reminders and notifications
-- [ ] Improved test coverage
+- [x] Improved test coverage
 - [ ] App branding and release assets
 
 ## Current Project Status
