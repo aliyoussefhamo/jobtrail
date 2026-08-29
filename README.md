@@ -131,6 +131,12 @@ flutter test
 
 The same checks run automatically on every push to `main` and every pull request through GitHub Actions.
 
+## Android Release
+
+Download the latest signed Android APK from the [GitHub Releases](https://github.com/aliyoussefhamo/jobtrail/releases/latest) page.
+
+The Android application ID is `com.aliyoussefhamo.jobtrail`. Release builds are signed with a private upload key that is stored outside the repository.
+
 ## Getting Started
 
 ### Requirements
@@ -167,11 +173,11 @@ flutter run
 - [x] App branding and release assets
 - [x] Empty, loading, and error states
 - [x] Automated GitHub Actions CI
-- [ ] Android release APK
+- [x] Android release APK
 
 ## Current Project Status
 
-JobTrail is feature-complete for its first portfolio release. Application data is stored locally with SQLite and remains available across app restarts. Multi-status and application-date filters can be combined with search, while local notifications remind users about upcoming interviews. The next milestone is packaging and publishing the first Android release.
+JobTrail is feature-complete for its first portfolio release. Application data is stored locally with SQLite and remains available across app restarts. Multi-status and application-date filters can be combined with search, while local notifications remind users about upcoming interviews. Automated quality checks and a signed Android release complete the first production-minded portfolio milestone.
 
 ## Author
 
